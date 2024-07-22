@@ -10,6 +10,18 @@ export const InputValidation = (data: CreateVideoDto | UpdateVideoDto) => {
         errorsMessages: [],
     };
 
+    if (!data.author) {
+        errors.errorsMessages.push({
+            message: "error!!!!",
+            field: "author",
+        });
+    }
+    if (!data.title) {
+        errors.errorsMessages.push({
+            message: "error!!!!",
+            field: "title",
+        });
+    }
     if (
         !Array.isArray(data.availableResolutions) ||
         data.availableResolutions.find((p) => !AvailableResolutionsEnum[p])
@@ -19,13 +31,13 @@ export const InputValidation = (data: CreateVideoDto | UpdateVideoDto) => {
             field: "availableResolution",
         });
     }
-    if (data.title.length > 40 || !data.title) {
+    if (data?.title?.length > 40 || !data?.title) {
         errors.errorsMessages.push({
             message: "error!!!!",
             field: "title",
         });
     }
-    if (data.author.length > 20 || !data.author) {
+    if (data?.author?.length > 20 || !data?.author) {
         errors.errorsMessages.push({
             message: "error!!!!",
             field: "author",

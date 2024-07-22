@@ -20,12 +20,16 @@ export const createVideo = async (
         return;
     }
 
+    const createdAt = new Date();
+    const publicationDate = new Date();
+    publicationDate.setDate(publicationDate.getDate() + 1);
+
     const newVideo: VideoType = {
         id: db.videos.length + 1,
         canBeDownloaded: false,
         minAgeRestriction: null,
-        createdAt: new Date().toISOString(),
-        publicationDate: new Date().toISOString(),
+        createdAt: createdAt.toISOString(),
+        publicationDate: publicationDate.toISOString(),
         ...req.body,
     };
     const videos = [...db.videos, newVideo];
