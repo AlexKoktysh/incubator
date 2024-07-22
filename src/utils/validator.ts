@@ -1,7 +1,11 @@
-import { AvailableResolutionsEnum, CreateVideoDto } from "../videos";
+import {
+    AvailableResolutionsEnum,
+    CreateVideoDto,
+    UpdateVideoDto,
+} from "../videos";
 import { OutputErrorsType } from "./types";
 
-export const InputValidation = (data: CreateVideoDto) => {
+export const InputValidation = (data: CreateVideoDto | UpdateVideoDto) => {
     const errors: OutputErrorsType = {
         errorsMessages: [],
     };
@@ -13,6 +17,28 @@ export const InputValidation = (data: CreateVideoDto) => {
         errors.errorsMessages.push({
             message: "error!!!!",
             field: "availableResolution",
+        });
+    }
+    if (data.title.length > 40 || !data.title) {
+        errors.errorsMessages.push({
+            message: "error!!!!",
+            field: "title",
+        });
+    }
+    if (data.author.length > 20 || !data.author) {
+        errors.errorsMessages.push({
+            message: "error!!!!",
+            field: "author",
+        });
+    }
+    const minAgeRestriction = (data as UpdateVideoDto)?.minAgeRestriction;
+    if (
+        minAgeRestriction &&
+        (minAgeRestriction > 18 || minAgeRestriction < 1)
+    ) {
+        errors.errorsMessages.push({
+            message: "error!!!!",
+            field: "minAgeRestriction",
         });
     }
     return errors;

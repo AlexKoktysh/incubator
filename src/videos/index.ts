@@ -7,4 +7,5 @@ export {
     OutputType,
     someController,
     CreateVideoDto,
+    UpdateVideoDto,
 } from "./types";

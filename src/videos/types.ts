@@ -17,6 +17,15 @@ export type CreateVideoDto = {
     availableResolutions: AvailableResolutionsEnum[];
 };
 
+export type UpdateVideoDto = {
+    title: string;
+    author: string;
+    availableResolutions?: AvailableResolutionsEnum[];
+    canBeDownloaded?: boolean;
+    minAgeRestriction?: number;
+    publicationDate?: string;
+};
+
 export type VideoType = {
     id: number;
     title: string;

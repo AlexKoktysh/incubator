@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { db, setDB } from "../db/db";
-import { CreateVideoDto, VideoType } from "./types";
+import { CreateVideoDto, VideoType, UpdateVideoDto } from "./types";
 import { InputValidation } from "../utils";
 
 export const getVideos = async (req: Request, res: Response) => {
@@ -22,7 +22,7 @@ export const createVideo = async (
 
     const newVideo: VideoType = {
         id: db.videos.length + 1,
-        canBeDownloaded: true,
+        canBeDownloaded: false,
         minAgeRestriction: null,
         createdAt: new Date().toISOString(),
         publicationDate: new Date().toISOString(),
@@ -39,9 +39,39 @@ export const findVideo = async (
     res: Response,
 ) => {
     const findVideo = db.videos.find((video) => video.id === req.query);
-    console.log("findVideo", findVideo);
 
     res.status(200).json(findVideo);
 };
 
-export const deleteVideo = async () => {};
+export const updateVideo = async (
+    req: Request<{ id: string }, {}, UpdateVideoDto, number>,
+    res: Response,
+) => {
+    const errors = InputValidation(req.body);
+
+    if (errors.errorsMessages.length) {
+        res.status(400).json(errors);
+        return;
+    }
+    const updatedVideos = db.videos.map((video) => {
+        if (video.id === Number(req.params.id))
+            return {
+                ...video,
+                ...req.body,
+            };
+        return video;
+    });
+    setDB({ videos: updatedVideos });
+
+    res.status(204).json("OK");
+};
+
+export const deleteVideo = async (
+    req: Request<{}, {}, {}, number>,
+    res: Response,
+) => {
+    const newVideos = db.videos.filter((video) => video.id === req.query);
+    setDB({ videos: newVideos });
+
+    res.status(204).json("OK");
+};
