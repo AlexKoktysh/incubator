@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { db, setDB } from "../db/db";
 import { CreateVideoDto, VideoType, UpdateVideoDto } from "./types";
-import { InputValidation } from "../utils";
+import { OutputErrorsType } from "../utils";
+import { CreateVideoSchema, UpdateVideoSchema } from "../utils/validator";
 
 export const getVideos = async (req: Request, res: Response) => {
     const videos = db.videos;
@@ -13,11 +14,19 @@ export const createVideo = async (
     req: Request<{}, {}, CreateVideoDto>,
     res: Response,
 ) => {
-    const errors = InputValidation(req.body);
+    const { error } = CreateVideoSchema.validate(req.body, {
+        abortEarly: false,
+    });
 
-    if (errors.errorsMessages.length) {
-        res.status(400).json(errors);
-        return;
+    if (error) {
+        const formattedErrors = error.details.map((err) => ({
+            message: "error!!!!",
+            field:
+                err.path[0] === "availableResolutions"
+                    ? "availableResolutions"
+                    : err.path.join("."),
+        }));
+        return res.status(400).json({ errorsMessages: formattedErrors });
     }
 
     const createdAt = new Date();
@@ -35,28 +44,46 @@ export const createVideo = async (
     const videos = [...db.videos, newVideo];
     setDB({ videos });
 
-    res.status(201).json(newVideo);
+    return res.status(201).json(newVideo);
 };
 
 export const findVideo = async (
-    req: Request<{}, {}, {}, number>,
+    req: Request<{ id: string }>,
     res: Response,
 ) => {
-    const findVideo = db.videos.find((video) => video.id === req.query);
+    const findVideo = db.videos.find(
+        (video) => video.id === Number(req.params.id),
+    );
 
-    res.status(200).json(findVideo);
+    findVideo
+        ? res.status(200).json(findVideo)
+        : res
+              .status(404)
+              .json({ errorsMessages: { message: "error!!!!", field: "id" } });
 };
 
 export const updateVideo = async (
-    req: Request<{ id: string }, {}, UpdateVideoDto, number>,
+    req: Request<{ id: string }, {}, UpdateVideoDto>,
     res: Response,
 ) => {
-    const errors = InputValidation(req.body);
+    const { error } = UpdateVideoSchema.validate(req.body, {
+        abortEarly: false,
+    });
 
-    if (errors.errorsMessages.length) {
-        res.status(400).json(errors);
-        return;
+    if (error) {
+        const formattedErrors = error.details.map((err) => ({
+            message: "error!!!!",
+            field:
+                err.path[0] === "availableResolutions"
+                    ? "availableResolutions"
+                    : err.path.join("."),
+        }));
+        return res.status(400).json({ errorsMessages: formattedErrors });
     }
+
+    const updateVideo = db.videos.find(
+        (video) => video.id === Number(req.params.id),
+    );
     const updatedVideos = db.videos.map((video) => {
         if (video.id === Number(req.params.id))
             return {
@@ -67,15 +94,42 @@ export const updateVideo = async (
     });
     setDB({ videos: updatedVideos });
 
-    res.status(204).json("OK");
+    if (updateVideo) {
+        return res.status(204).json("OK");
+    } else {
+        return res
+            .status(404)
+            .json({ errorsMessages: [{ message: "error!!!!", field: "id" }] });
+    }
 };
 
 export const deleteVideo = async (
-    req: Request<{}, {}, {}, number>,
+    req: Request<{ id: string }>,
     res: Response,
 ) => {
-    const newVideos = db.videos.filter((video) => video.id === req.query);
-    setDB({ videos: newVideos });
+    const errors: OutputErrorsType = { errorsMessages: [] };
+    if (!req.params.id) {
+        errors.errorsMessages.push({
+            message: "error!!!!",
+            field: "params",
+        });
+    }
 
-    res.status(204).json("OK");
+    if (errors.errorsMessages.length) {
+        res.status(400).json(errors);
+        return;
+    }
+    const deleteVideo = db.videos.find(
+        (video) => video.id === Number(req.params.id),
+    );
+    const newVideos = db.videos.filter(
+        (video) => video.id !== Number(req.params.id),
+    );
+    setDB({ videos: [...newVideos] });
+
+    deleteVideo
+        ? res.status(204).json(deleteVideo)
+        : res
+              .status(404)
+              .json({ errorsMessages: { message: "error!!!!", field: "id" } });
 };

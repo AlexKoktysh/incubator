@@ -1,57 +1,36 @@
-import {
-    AvailableResolutionsEnum,
-    CreateVideoDto,
-    UpdateVideoDto,
-} from "../videos";
-import { OutputErrorsType } from "./types";
+import Joi from "joi";
 
-export const InputValidation = (data: CreateVideoDto | UpdateVideoDto) => {
-    const errors: OutputErrorsType = {
-        errorsMessages: [],
-    };
+enum AvailableResolutionsEnum {
+    "P144" = "P144",
+    "P240" = "P240",
+    "P360" = "P360",
+    "P480" = "P480",
+    "P720" = "P720",
+    "P1080" = "P1080",
+    "P1440" = "P1440",
+    "P2160" = "P2160",
+}
 
-    if (!data.author) {
-        errors.errorsMessages.push({
-            message: "error!!!!",
-            field: "author",
-        });
-    }
-    if (!data.title) {
-        errors.errorsMessages.push({
-            message: "error!!!!",
-            field: "title",
-        });
-    }
-    if (
-        !Array.isArray(data.availableResolutions) ||
-        data.availableResolutions.find((p) => !AvailableResolutionsEnum[p])
-    ) {
-        errors.errorsMessages.push({
-            message: "error!!!!",
-            field: "availableResolution",
-        });
-    }
-    if (data?.title?.length > 40 || !data?.title) {
-        errors.errorsMessages.push({
-            message: "error!!!!",
-            field: "title",
-        });
-    }
-    if (data?.author?.length > 20 || !data?.author) {
-        errors.errorsMessages.push({
-            message: "error!!!!",
-            field: "author",
-        });
-    }
-    const minAgeRestriction = (data as UpdateVideoDto)?.minAgeRestriction;
-    if (
-        minAgeRestriction &&
-        (minAgeRestriction > 18 || minAgeRestriction < 1)
-    ) {
-        errors.errorsMessages.push({
-            message: "error!!!!",
-            field: "minAgeRestriction",
-        });
-    }
-    return errors;
-};
+export const CreateVideoSchema = Joi.object({
+    title: Joi.string().max(40).required(),
+    author: Joi.string().max(20).required(),
+    availableResolutions: Joi.array().items(
+        Joi.string().valid(...Object.values(AvailableResolutionsEnum)),
+    ),
+});
+
+export const UpdateVideoSchema = Joi.object({
+    title: Joi.string().max(40).required(),
+    author: Joi.string().max(20).required(),
+    availableResolutions: Joi.array()
+        .items(Joi.string().valid(...Object.values(AvailableResolutionsEnum)))
+        .required(),
+    canBeDownloaded: Joi.boolean().default(false),
+    minAgeRestriction: Joi.number()
+        .integer()
+        .min(1)
+        .max(18)
+        .allow(null)
+        .default(null),
+    publicationDate: Joi.string().required(),
+});
