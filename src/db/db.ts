@@ -1,28 +1,28 @@
-import { BlogType } from "../entities/blogs";
-import { PostType } from "../entities/posts";
-import { AvailableResolutionsEnum, VideoType } from "../videos/types";
+import { BlogDbType } from "./blog-db-type";
+import { PostDbType } from "./post-db.type";
 
 export type DBType = {
-    videos: VideoType[];
-    blogs: BlogType[];
-    posts: PostType[];
+    blogs: BlogDbType[];
+    posts: PostDbType[];
 };
 
 export const db: DBType = {
-    videos: [],
     blogs: [],
     posts: [],
 };
 
-export const setDB = (dataset?: Partial<DBType>) => {
+export type ReadonlyDBType = {
+    blogs: Readonly<BlogDbType[]>;
+    posts: Readonly<PostDbType[]>;
+};
+
+export const setDB = (dataset?: Partial<ReadonlyDBType>) => {
     if (!dataset) {
-        db.videos = [];
         db.blogs = [];
         db.posts = [];
         return;
     }
 
-    db.videos = dataset.videos || db.videos;
-    db.blogs = dataset.blogs || db.blogs;
-    db.posts = dataset.posts || db.posts;
+    db.blogs = dataset.blogs?.map((b) => ({ ...b })) || db.blogs;
+    db.posts = dataset.posts?.map((p) => ({ ...p })) || db.posts;
 };
