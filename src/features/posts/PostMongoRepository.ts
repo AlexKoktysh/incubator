@@ -3,11 +3,11 @@ import { PostDbType } from "../../db/post-db.type";
 import { BlogsMongoRepository } from "../blogs/BlogMongoRepository";
 import { CreatePostDto, PostType } from "./types";
 import { postCollection } from "../../db/mongo-db";
+import { BlogDbType } from "../../db/blog-db-type";
 
 export const PostsMongoRepository = {
     async create(post: CreatePostDto) {
         const blog = await BlogsMongoRepository.find(post.blogId);
-        if (!blog) return null;
         const newPost: PostDbType = {
             id: new ObjectId().toString(),
             title: post.title,
@@ -15,7 +15,7 @@ export const PostsMongoRepository = {
             shortDescription: post.shortDescription,
             createdAt: new Date().toISOString(),
             blogId: post.blogId,
-            blogName: blog.name,
+            blogName: (blog as BlogDbType).name,
         };
         await postCollection.insertOne(newPost);
         return newPost.id;
