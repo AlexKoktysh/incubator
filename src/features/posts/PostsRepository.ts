@@ -1,17 +1,19 @@
+import { ObjectId } from "mongodb";
 import { db, setDB } from "../../db/db";
 import { PostDbType } from "../../db/post-db.type";
-import { BlogsRepository } from "../blogs/BlogsRepository";
+import { BlogsMongoRepository as BlogsRepository } from "../blogs/BlogMongoRepository";
 import { CreatePostDto, PostType } from "./types";
 
 export const PostsRepository = {
-    create(post: CreatePostDto) {
-        const blog = BlogsRepository.find(post.blogId);
+    async create(post: CreatePostDto) {
+        const blog = await BlogsRepository.find(post.blogId);
         if (!blog) return null;
         const newPost: PostDbType = {
             id: new Date().toISOString() + Math.random(),
             title: post.title,
             content: post.content,
             shortDescription: post.shortDescription,
+            createdAt: new Date().toISOString(),
             blogId: post.blogId,
             blogName: blog.name,
         };
@@ -30,7 +32,7 @@ export const PostsRepository = {
         return db.posts.map((p) => this.map(p));
     },
     del(id: string) {
-        const findPost = this.find(id)!;
+        const findPost = this.find(id);
         if (findPost) {
             setDB({
                 posts: db.posts.filter((post) => post.id !== id),
@@ -39,8 +41,8 @@ export const PostsRepository = {
         }
         return null;
     },
-    put(post: CreatePostDto, id: string) {
-        const newPost = BlogsRepository.find(post.blogId)!;
+    async put(post: CreatePostDto, id: string) {
+        const newPost = await BlogsRepository.find(post.blogId)!;
         const updatedPost = PostsRepository.find(id);
         if (newPost && updatedPost) {
             db.posts = db.posts.map((p) =>
@@ -58,6 +60,7 @@ export const PostsRepository = {
             content: post.content,
             blogId: post.blogId,
             blogName: post.blogName,
+            createdAt: post.createdAt,
         };
         return postForOutput;
     },

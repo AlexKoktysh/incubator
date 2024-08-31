@@ -1,18 +1,18 @@
 import { Response, Request } from "express";
-import { BlogsRepository } from "./BlogsRepository";
+import { BlogsMongoRepository as BlogsRepository } from "./BlogMongoRepository";
 import { CreateBlogSchema } from "./middlewares/validator";
 import { OutputErrorsType } from "../../utils";
 import { BlogType, CreateBlogDto } from "./types";
 
-export const getAllBlogsController = (
+export const getAllBlogsController = async (
     _req: Request,
     res: Response<BlogType[]>,
 ) => {
-    const blogs = BlogsRepository.getAll();
+    const blogs = await BlogsRepository.getAll();
     res.status(200).json(blogs);
 };
 
-export const getBlogById = (
+export const getBlogById = async (
     req: Request<{ id: string }>,
     res: Response<BlogType | OutputErrorsType>,
 ) => {
@@ -21,15 +21,15 @@ export const getBlogById = (
             .status(404)
             .json({ errorsMessages: [{ message: "error!!!!", field: "id" }] });
 
-    const blog = BlogsRepository.find(req.params.id);
+    const blog = await BlogsRepository.find(req.params.id);
     return blog
         ? res.status(200).json(blog)
         : res.status(404).json({
-              errorsMessages: [{ message: "error!!!!", field: "id" }],
+              errorsMessages: [{ message: "error!!!!not find", field: "id" }],
           });
 };
 
-export const createBlogController = (
+export const createBlogController = async (
     req: Request<any, any, CreateBlogDto>,
     res: Response<BlogType | OutputErrorsType>,
 ) => {
@@ -43,13 +43,11 @@ export const createBlogController = (
         }));
         return res.status(400).json({ errorsMessages: formattedErrors });
     }
-    const newBlogId = BlogsRepository.create(req.body);
-    const newBlog = BlogsRepository.findAndMap(newBlogId);
-
+    const newBlog = await BlogsRepository.create(req.body);
     return res.status(201).json(newBlog);
 };
 
-export const updateBlogController = (
+export const updateBlogController = async (
     req: Request<{ id: string }, any, CreateBlogDto>,
     res: Response<BlogType | OutputErrorsType | string>,
 ) => {
@@ -70,7 +68,7 @@ export const updateBlogController = (
         return res.status(400).json({ errorsMessages: formattedErrors });
     }
 
-    const updateBlog = BlogsRepository.put(req.body, req.params.id);
+    const updateBlog = await BlogsRepository.put(req.body, req.params.id);
 
     if (!updateBlog)
         return res
@@ -80,7 +78,7 @@ export const updateBlogController = (
     return res.status(204).json("OK");
 };
 
-export const deleteBlogController = (
+export const deleteBlogController = async (
     req: Request<{ id: string }>,
     res: Response<BlogType | OutputErrorsType | string>,
 ) => {
@@ -90,7 +88,7 @@ export const deleteBlogController = (
             .json({ errorsMessages: [{ message: "error!!!!", field: "id" }] });
     }
 
-    const deleteBlog = BlogsRepository.del(req.params.id);
+    const deleteBlog = await BlogsRepository.del(req.params.id);
 
     if (!deleteBlog)
         return res

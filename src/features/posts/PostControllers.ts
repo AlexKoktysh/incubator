@@ -3,7 +3,7 @@ import { CreatePostDto, PostType } from "./types";
 import { PostsRepository } from "./PostsRepository";
 import { OutputErrorsType } from "../../utils";
 import { CreatePostSchema } from "./middlewares/validator";
-import { BlogsRepository } from "../blogs/BlogsRepository";
+import { BlogsMongoRepository as BlogsRepository } from "../blogs/BlogMongoRepository";
 
 export const getAllPostsController = (
     _req: Request,
@@ -30,11 +30,11 @@ export const getPostByIdController = (
           });
 };
 
-export const createPostController = (
+export const createPostController = async (
     req: Request<any, any, CreatePostDto>,
     res: Response<PostType | OutputErrorsType>,
 ) => {
-    const findBlog = BlogsRepository.find(req.body.blogId);
+    const findBlog = await BlogsRepository.find(req.body.blogId);
     const { error } = CreatePostSchema.validate(req.body, {
         abortEarly: false,
     });
@@ -53,7 +53,7 @@ export const createPostController = (
             .status(400)
             .json({ errorsMessages: [{ message: "Error", field: "blogId" }] });
     }
-    const newPostId = PostsRepository.create(req.body);
+    const newPostId = await PostsRepository.create(req.body);
     if (!newPostId)
         return res.status(400).json({
             errorsMessages: [{ message: "ERROR!!!!", field: "id" }],
@@ -63,7 +63,7 @@ export const createPostController = (
     return res.status(201).json(newPost);
 };
 
-export const updatePostController = (
+export const updatePostController = async (
     req: Request<{ id: string }, any, CreatePostDto>,
     res: Response<PostType | OutputErrorsType | string>,
 ) => {
@@ -72,7 +72,14 @@ export const updatePostController = (
             .status(404)
             .json({ errorsMessages: [{ message: "error!!!!", field: "id" }] });
     }
-    const findBlog = BlogsRepository.find(req.body.blogId);
+    const findPost = PostsRepository.find(req.params.id);
+    const findBlog = await BlogsRepository.find(req.body.blogId);
+
+    if (!findPost) {
+        return res
+            .status(404)
+            .json({ errorsMessages: [{ message: "Error", field: "postID" }] });
+    }
 
     const { error } = CreatePostSchema.validate(req.body, {
         abortEarly: false,
@@ -108,7 +115,6 @@ export const deletePostController = (
     res: Response<PostType | OutputErrorsType | string>,
 ) => {
     if (!req.params.id) {
-        console.log("404");
         return res
             .status(404)
             .json({ errorsMessages: [{ message: "error!!!!", field: "id" }] });
