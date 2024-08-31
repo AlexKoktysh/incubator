@@ -48,7 +48,6 @@ export const BlogsMongoRepository = {
     },
     async put(blog: CreateBlogDto, id: string) {
         const findBlog = await blogCollection.findOne({ id: id });
-        console.log("findBlog", findBlog, id);
         if (findBlog) {
             const newBlog = this.map({
                 ...findBlog,

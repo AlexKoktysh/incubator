@@ -1,19 +1,19 @@
 import { Response, Request } from "express";
 import { CreatePostDto, PostType } from "./types";
-import { PostsRepository } from "./PostsRepository";
+import { PostsMongoRepository as PostsRepository } from "./PostMongoRepository";
 import { OutputErrorsType } from "../../utils";
 import { CreatePostSchema } from "./middlewares/validator";
 import { BlogsMongoRepository as BlogsRepository } from "../blogs/BlogMongoRepository";
 
-export const getAllPostsController = (
+export const getAllPostsController = async (
     _req: Request,
     res: Response<PostType[]>,
 ) => {
-    const posts = PostsRepository.getAll();
+    const posts = await PostsRepository.getAll();
     res.status(200).json(posts);
 };
 
-export const getPostByIdController = (
+export const getPostByIdController = async (
     req: Request<{ id: string }>,
     res: Response<PostType | OutputErrorsType>,
 ) => {
@@ -22,7 +22,7 @@ export const getPostByIdController = (
             .status(404)
             .json({ errorsMessages: [{ message: "error!!!!", field: "id" }] });
 
-    const post = PostsRepository.find(req.params.id);
+    const post = await PostsRepository.find(req.params.id);
     return post
         ? res.status(200).json(post)
         : res.status(404).json({
@@ -58,7 +58,11 @@ export const createPostController = async (
         return res.status(400).json({
             errorsMessages: [{ message: "ERROR!!!!", field: "id" }],
         });
-    const newPost = PostsRepository.findAndMap(newPostId);
+    const newPost = await PostsRepository.findAndMap(newPostId);
+    if (!newPost)
+        return res.status(400).json({
+            errorsMessages: [{ message: "ERROR!!!!", field: "id" }],
+        });
 
     return res.status(201).json(newPost);
 };
@@ -72,7 +76,7 @@ export const updatePostController = async (
             .status(404)
             .json({ errorsMessages: [{ message: "error!!!!", field: "id" }] });
     }
-    const findPost = PostsRepository.find(req.params.id);
+    const findPost = await PostsRepository.find(req.params.id);
     const findBlog = await BlogsRepository.find(req.body.blogId);
 
     if (!findPost) {
@@ -100,7 +104,7 @@ export const updatePostController = async (
             .json({ errorsMessages: [{ message: "Error", field: "blogId" }] });
     }
 
-    const updatePost = PostsRepository.put(req.body, req.params.id);
+    const updatePost = await PostsRepository.put(req.body, req.params.id);
 
     if (!updatePost)
         return res
@@ -110,7 +114,7 @@ export const updatePostController = async (
     return res.status(204).json("OK");
 };
 
-export const deletePostController = (
+export const deletePostController = async (
     req: Request<{ id: string }>,
     res: Response<PostType | OutputErrorsType | string>,
 ) => {
@@ -120,7 +124,7 @@ export const deletePostController = (
             .json({ errorsMessages: [{ message: "error!!!!", field: "id" }] });
     }
 
-    const deletePost = PostsRepository.del(req.params.id);
+    const deletePost = await PostsRepository.del(req.params.id);
 
     if (!deletePost) {
         return res
