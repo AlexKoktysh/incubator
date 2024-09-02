@@ -1,13 +1,35 @@
-import { ObjectId } from "mongodb";
+import { ObjectId, Sort } from "mongodb";
 import { BlogDbType } from "../../db/blog-db-type";
 import { blogCollection } from "../../db/mongo-db";
-import { BlogType, CreateBlogDto } from "./types";
+import { CreateBlogDto } from "./types";
 
 export const BlogsMongoRepository = {
-    async getAll() {
-        return await blogCollection
-            .find({}, { projection: { _id: 0 } })
+    async getAll({
+        pageNumber,
+        pageSize,
+        sortBy,
+        sortDirection,
+        searchNameTerm,
+    }: {
+        pageNumber: string;
+        pageSize: string;
+        sortBy: string;
+        sortDirection: "asc" | "desc";
+        searchNameTerm: string;
+    }) {
+        const filter = {
+            name: { $regex: searchNameTerm, $options: "i" },
+        };
+        const totalCount = await blogCollection.countDocuments(filter);
+        const blogs = await blogCollection
+            .find(filter, {
+                projection: { _id: 0 },
+                sort: { [sortBy]: sortDirection === "asc" ? 1 : -1 },
+                skip: (+pageNumber - 1) * +pageSize,
+                limit: parseInt(pageSize),
+            })
             .toArray();
+        return { blogs, totalCount };
     },
     async create(blog: CreateBlogDto) {
         const newBlog = {
@@ -17,14 +39,7 @@ export const BlogsMongoRepository = {
             isMembership: false,
         };
         await blogCollection.insertOne(newBlog);
-        return {
-            id: newBlog.id,
-            name: newBlog.name,
-            description: newBlog.description,
-            websiteUrl: newBlog.websiteUrl,
-            createdAt: newBlog.createdAt,
-            isMembership: newBlog.isMembership,
-        };
+        return await this.find(newBlog.id);
     },
     async find(id: string) {
         return await blogCollection.findOne(
@@ -32,38 +47,17 @@ export const BlogsMongoRepository = {
             { projection: { _id: 0 } },
         );
     },
-    async findAndMap(id: string) {
-        const blog = await this.find(id)!;
-        return blog && this.map(blog);
-    },
-    map(blog: BlogDbType) {
-        const blogForOutput: BlogType = {
-            description: blog.description,
-            websiteUrl: blog.websiteUrl,
-            name: blog.name,
-            createdAt: blog.createdAt,
-            id: blog.id,
-        };
-        return blogForOutput;
-    },
     async put(blog: CreateBlogDto, id: string) {
         const findBlog = await blogCollection.findOne({ id: id });
-        if (findBlog) {
-            const newBlog = this.map({
-                ...findBlog,
-                ...blog,
-            });
-            await blogCollection.updateOne({ id: id }, { $set: newBlog });
-            return newBlog;
-        }
-        return null;
+        const newBlog = {
+            ...(findBlog as BlogDbType),
+            ...blog,
+        };
+        await blogCollection.updateOne({ id: id }, { $set: newBlog });
     },
     async del(id: string) {
-        const findBlog = await this.find(id)!;
-        findBlog &&
-            (await blogCollection.deleteOne({
-                id: id,
-            }));
-        return findBlog;
+        await blogCollection.deleteOne({
+            id: id,
+        });
     },
 };

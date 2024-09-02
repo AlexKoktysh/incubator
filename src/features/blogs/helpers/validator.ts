@@ -30,3 +30,18 @@ export const CreateBlogSchema = Joi.object({
             "any.required": `"websiteUrl" is a required field`,
         }),
 }).unknown(true);
+
+export const querySchema = Joi.object({
+    pageNumber: Joi.number().integer(),
+    pageSize: Joi.number().integer(),
+    sortBy: Joi.string(),
+    sortDirection: Joi.string().valid("asc", "desc"),
+});
+
+export const querySchemaByBlogs = Joi.object({
+    pageNumber: Joi.number().integer(),
+    pageSize: Joi.number().integer(),
+    sortBy: Joi.string(),
+    sortDirection: Joi.string().valid("asc", "desc"),
+    searchNameTerm: Joi.string(),
+});

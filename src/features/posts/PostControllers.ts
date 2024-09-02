@@ -5,43 +5,89 @@ import { OutputErrorsType } from "../../utils";
 import { PostDbType } from "../../db/post-db.type";
 
 export const getAllPostsController = async (
-    _req: Request,
-    res: Response<PostType[]>,
+    req: Request<
+        {},
+        {},
+        {},
+        {
+            pageNumber?: string;
+            pageSize?: string;
+            sortBy?: string;
+            sortDirection?: "asc" | "desc";
+        }
+    >,
+    res: Response<any>,
 ) => {
-    const posts = await PostsRepository.getAll();
-    res.status(200).json(posts);
+    try {
+        const {
+            pageNumber = String(1),
+            pageSize = String(10),
+            sortBy = "createdAt",
+            sortDirection = "desc",
+        } = req.query;
+        const { posts, totalCount } = await PostsRepository.getAllByCondition({
+            pageNumber,
+            pageSize,
+            sortBy,
+            sortDirection,
+        });
+        res.status(200).json({
+            items: posts,
+            totalCount,
+            pagesCount: Math.ceil(totalCount / +pageSize),
+            page: +pageNumber,
+            pageSize: +pageSize,
+        });
+    } catch (err: any) {
+        res.status(500).json(err);
+    }
 };
 
 export const getPostByIdController = async (
     req: Request<{ id: string }>,
     res: Response<PostType | OutputErrorsType>,
 ) => {
-    const post = await PostsRepository.find(req.params.id);
-    return res.status(200).json(post as PostDbType);
+    try {
+        const post = await PostsRepository.find(req.params.id);
+        res.status(200).json(post as PostDbType);
+    } catch (err: any) {
+        res.status(500).json(err);
+    }
 };
 
 export const createPostController = async (
-    req: Request<any, any, CreatePostDto>,
+    req: Request<{ id: string }, any, CreatePostDto>,
     res: Response<PostType | OutputErrorsType>,
 ) => {
-    const newPostId = await PostsRepository.create(req.body);
-    const post = await PostsRepository.find(newPostId);
-
-    return res.status(201).json(post as PostDbType);
+    try {
+        const newPostId = await PostsRepository.create(req.body);
+        const post = await PostsRepository.find(newPostId);
+        res.status(201).json(post as PostDbType);
+    } catch (err: any) {
+        res.status(500).json(err);
+    }
 };
 
 export const updatePostController = async (
     req: Request<{ id: string }, any, CreatePostDto>,
     res: Response<PostType | OutputErrorsType | string>,
 ) => {
-    await PostsRepository.put(req.body, req.params.id);
-    return res.status(204).json("OK");
+    try {
+        await PostsRepository.put(req.body, req.params.id);
+        res.status(204).json("OK");
+    } catch (err: any) {
+        res.status(500).json(err);
+    }
 };
 
 export const deletePostController = async (
     req: Request<{ id: string }>,
     res: Response<PostType | OutputErrorsType | string>,
 ) => {
-    await PostsRepository.del(req.params.id);
-    return res.status(204).json("OK");
+    try {
+        await PostsRepository.del(req.params.id);
+        res.status(204).json("OK");
+    } catch (err: any) {
+        res.status(500).json(err);
+    }
 };

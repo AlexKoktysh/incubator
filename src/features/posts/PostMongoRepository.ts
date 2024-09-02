@@ -1,7 +1,7 @@
-import { ObjectId } from "mongodb";
+import { ObjectId, Sort } from "mongodb";
 import { PostDbType } from "../../db/post-db.type";
 import { BlogsMongoRepository } from "../blogs/BlogMongoRepository";
-import { CreatePostDto, PostType } from "./types";
+import { CreatePostDto } from "./types";
 import { postCollection } from "../../db/mongo-db";
 import { BlogDbType } from "../../db/blog-db-type";
 
@@ -26,50 +26,48 @@ export const PostsMongoRepository = {
             { projection: { _id: 0 } },
         );
     },
-    async findAndMap(id: string) {
-        const post = await this.find(id);
-        if (post) return this.map(post);
-        return null;
-    },
     async getAll() {
         const posts = await postCollection
             .find({}, { projection: { _id: 0 } })
             .toArray();
-        return posts.map((p) => this.map(p));
+        return posts;
     },
     async del(id: string) {
-        const findPost = await this.find(id);
-        if (findPost) {
-            await postCollection.deleteOne({
-                id: id,
-            });
-            return findPost;
-        }
-        return null;
+        await postCollection.deleteOne({
+            id: id,
+        });
     },
     async put(post: CreatePostDto, id: string) {
-        const blog = await BlogsMongoRepository.find(post.blogId)!;
         const updatedPost = await this.find(id);
-        if (blog && updatedPost) {
-            const newPost = {
-                ...updatedPost,
-                ...post,
-            };
-            await postCollection.updateOne({ id: id }, { $set: newPost });
-            return updatedPost;
-        }
-        return null;
-    },
-    map(post: PostDbType) {
-        const postForOutput: PostType = {
-            id: post.id,
-            title: post.title,
-            shortDescription: post.shortDescription,
-            content: post.content,
-            blogId: post.blogId,
-            blogName: post.blogName,
-            createdAt: post.createdAt,
+        const newPost = {
+            ...(updatedPost as PostDbType),
+            ...post,
         };
-        return postForOutput;
+        await postCollection.updateOne({ id: id }, { $set: newPost });
+    },
+    async getAllByCondition({
+        blogId,
+        pageNumber,
+        pageSize,
+        sortBy,
+        sortDirection,
+    }: {
+        blogId?: string;
+        pageNumber: string;
+        pageSize: string;
+        sortBy: string;
+        sortDirection: "asc" | "desc";
+    }) {
+        const condition = blogId ? { blogId: blogId } : {};
+        const totalCount = await postCollection.countDocuments(condition);
+        const posts = await postCollection
+            .find(condition, {
+                projection: { _id: 0 },
+                sort: { [sortBy]: sortDirection === "asc" ? 1 : -1 },
+                skip: (+pageNumber - 1) * +pageSize,
+                limit: parseInt(pageSize),
+            })
+            .toArray();
+        return { posts, totalCount };
     },
 };
