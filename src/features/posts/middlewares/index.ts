@@ -1,2 +1,5 @@
 export { inputValidationMiddleware } from "./inputValidationMiddleware";
-export { queryValidationMiddleware } from "./queryValidationMiddleware";
+export {
+    queryValidationMiddleware,
+    validateQuery,
+} from "./queryValidationMiddleware";

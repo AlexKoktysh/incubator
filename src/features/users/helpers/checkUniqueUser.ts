@@ -1,9 +1,9 @@
+import { usersQueryRepository } from "../repositories";
 import { CreateUserDto } from "../types";
-import { UsersMongoRepository } from "../UsersMongoRepository";
 
 const isUniqueEmail = async (email: string) => {
     try {
-        const user = await UsersMongoRepository.findByEmail(email);
+        const user = await usersQueryRepository.findByCondition("email", email);
         return !user;
     } catch (err) {
         console.error("isUniqueEmail", err);
@@ -13,7 +13,7 @@ const isUniqueEmail = async (email: string) => {
 
 const isUniqueLogin = async (login: string) => {
     try {
-        const user = await UsersMongoRepository.findByLogin(login);
+        const user = await usersQueryRepository.findByCondition("login", login);
         return !user;
     } catch (err) {
         console.error("isUniqueLogin", err);

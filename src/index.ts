@@ -1,15 +1,12 @@
 import { app } from "./app";
-import { connectToDB } from "./db/mongo-db";
-import { SETTINGS } from "./settings";
+import { secretsConfig } from "./config";
+import { database } from "./db";
 
 const start = async () => {
-    if (!(await connectToDB())) {
-        console.log("No BD connected");
-        process.exit(1);
-    }
+    await database.connectToDB({});
 
-    app.listen(SETTINGS.PORT, () => {
-        console.log("...server started in port " + SETTINGS.PORT);
+    app.listen(secretsConfig.PORT, () => {
+        console.log("...server started in port " + secretsConfig.PORT);
     });
 };
 

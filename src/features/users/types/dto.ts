@@ -1,4 +1,5 @@
-import { PaginationType, QueryPaginationType } from "../../utils";
+import { ObjectId } from "mongodb";
+import { PaginationType, QueryPaginationType } from "../../../utils";
 
 export type CreateUserDto = {
     login: string;
@@ -6,15 +7,15 @@ export type CreateUserDto = {
     email: string;
 };
 
-export type UserType = {
-    id: string;
+export type UserViewType = {
+    id: ObjectId;
     login: string;
     email: string;
     createdAt: string;
 };
 
-export interface UsersDtoType extends PaginationType {
-    items: UserType[];
+export interface ListUsersViewType extends PaginationType {
+    items: UserViewType[];
 }
 
 export interface QueryPaginationByUserType extends QueryPaginationType {

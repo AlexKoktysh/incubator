@@ -1,1 +1,2 @@
-export { authMiddleware } from "./auth";
+export { basicAuthMiddleware } from "./basicAuthMiddleware";
+export { bearerAuthMiddleware } from "./bearerAuthMiddleware";

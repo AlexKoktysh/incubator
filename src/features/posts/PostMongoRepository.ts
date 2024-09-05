@@ -2,7 +2,7 @@ import { ObjectId, Sort } from "mongodb";
 import { PostDbType } from "../../db/post-db.type";
 import { BlogsMongoRepository } from "../blogs/BlogMongoRepository";
 import { CreatePostDto } from "./types";
-import { postCollection } from "../../db/mongo-db";
+import { commentsCollection, postCollection } from "../../db/mongo-db";
 import { BlogDbType } from "../../db/blog-db-type";
 
 export const PostsMongoRepository = {
@@ -69,5 +69,30 @@ export const PostsMongoRepository = {
             })
             .toArray();
         return { posts, totalCount };
+    },
+    async getAllComments({
+        pageNumber,
+        pageSize,
+        sortBy,
+        sortDirection,
+    }: {
+        pageNumber: string;
+        pageSize: string;
+        sortBy: string;
+        sortDirection: "asc" | "desc";
+    }) {
+        const totalCount = await commentsCollection.countDocuments();
+        const comments = await commentsCollection
+            .find(
+                {},
+                {
+                    projection: { _id: 0 },
+                    sort: { [sortBy]: sortDirection === "asc" ? 1 : -1 },
+                    skip: (+pageNumber - 1) * +pageSize,
+                    limit: parseInt(pageSize),
+                },
+            )
+            .toArray();
+        return { comments, totalCount };
     },
 };

@@ -1,16 +1,20 @@
 import { Router } from "express";
-import { authMiddleware } from "../../middleware";
+import { authMiddleware, bearerAuthMiddleware } from "../../middleware";
 import {
     getAllPostsController,
     createPostController,
     deletePostController,
     getPostByIdController,
     updatePostController,
+    getComments,
+    createComment,
 } from "./PostControllers";
 import {
     inputValidationMiddleware,
     queryValidationMiddleware,
+    validateQuery,
 } from "./middlewares";
+import { updateCommentValidationMiddleware } from "../comments/middlewares";
 
 export const PostsRouter = Router();
 
@@ -34,4 +38,18 @@ PostsRouter.delete(
     authMiddleware,
     queryValidationMiddleware,
     deletePostController,
+);
+
+PostsRouter.get(
+    "/:id/comments",
+    queryValidationMiddleware,
+    validateQuery,
+    getComments,
+);
+PostsRouter.post(
+    "/:id/comments",
+    bearerAuthMiddleware,
+    queryValidationMiddleware,
+    updateCommentValidationMiddleware,
+    createComment,
 );

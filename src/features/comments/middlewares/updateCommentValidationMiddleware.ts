@@ -1,13 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import { CreateUserSchema } from "../helpers/vaidator";
+import { UpdateCommentSchema } from "../helpers/validator";
 
-export const inputValidationMiddleware = (
+export const updateCommentValidationMiddleware = (
     req: Request,
     res: Response,
     next: NextFunction,
 ) => {
-    const { error } = CreateUserSchema.validate(req.body, {
+    const { error } = UpdateCommentSchema.validate(req.body, {
         abortEarly: false,
+        allowUnknown: true,
     });
 
     if (error) {

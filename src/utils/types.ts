@@ -18,3 +18,16 @@ export type QueryPaginationType = {
     pageNumber?: string;
     pageSize?: string;
 };
+
+export type FindEntityFunction<T> = (id: string) => Promise<T | null>;
+
+export enum HttpStatuses {
+    Success = 200,
+    Created = 201,
+    NoContent = 204,
+    BadRequest = 400,
+    Unauthorized = 401,
+    Forbidden = 403,
+    NotFound = 404,
+    Error = 500,
+}

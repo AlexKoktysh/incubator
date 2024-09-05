@@ -9,4 +9,11 @@ export const AuthMongoRepository = {
             projection: { _id: 0 },
         });
     },
+    async findById(id: string) {
+        const filter = { id: id };
+
+        return await usersCollection.findOne(filter, {
+            projection: { _id: 0, createdAt: 0, password: 0 },
+        });
+    },
 };

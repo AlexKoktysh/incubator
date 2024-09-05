@@ -6,7 +6,6 @@ import { BlogDbType } from "../../db/blog-db-type";
 import { CreatePostDto, PostType } from "../posts/types";
 import { PostsMongoRepository } from "../posts/PostMongoRepository";
 import { PostDbType } from "../../db/post-db.type";
-import { blogCollection, postCollection } from "../../db/mongo-db";
 
 export const getAllBlogsController = async (
     req: Request<

@@ -25,3 +25,10 @@ export const CreatePostSchema = Joi.object({
         "any.required": `"blogId" is a required field`,
     }),
 });
+
+export const querySchema = Joi.object({
+    pageNumber: Joi.number().integer(),
+    pageSize: Joi.number().integer(),
+    sortBy: Joi.string(),
+    sortDirection: Joi.string().valid("asc", "desc"),
+});

@@ -1,4 +1,5 @@
 import Joi from "joi";
+import { createQuerySchemaByPagination } from "../../../utils";
 
 export const CreateUserSchema = Joi.object({
     login: Joi.string()
@@ -35,11 +36,7 @@ export const CreateUserSchema = Joi.object({
         }),
 }).unknown(true);
 
-export const querySchema = Joi.object({
-    pageNumber: Joi.number().integer(),
-    pageSize: Joi.number().integer(),
-    sortBy: Joi.string(),
-    sortDirection: Joi.string().valid("asc", "desc"),
+export const querySchemaByPagination = createQuerySchemaByPagination({
     searchLoginTerm: Joi.string(),
     searchEmailTerm: Joi.string(),
 });

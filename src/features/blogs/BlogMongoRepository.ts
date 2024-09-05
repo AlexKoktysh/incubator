@@ -1,7 +1,8 @@
 import { ObjectId, Sort } from "mongodb";
 import { BlogDbType } from "../../db/blog-db-type";
-import { blogCollection } from "../../db/mongo-db";
 import { CreateBlogDto } from "./types";
+import { collectionsConfig } from "../../config";
+import { database } from "../../db";
 
 export const BlogsMongoRepository = {
     async getAll({
@@ -20,7 +21,9 @@ export const BlogsMongoRepository = {
         const filter = {
             name: { $regex: searchNameTerm, $options: "i" },
         };
-        const totalCount = await blogCollection.countDocuments(filter);
+        const totalCount = await database
+            .getCollection(collectionsConfig.BLOGS)
+            .countDocuments(filter);
         const blogs = await blogCollection
             .find(filter, {
                 projection: { _id: 0 },

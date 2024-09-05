@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import basicAuth from "basic-auth";
 
-export const authMiddleware = (
+export const basicAuthMiddleware = (
     req: Request,
     res: Response,
     next: NextFunction,
