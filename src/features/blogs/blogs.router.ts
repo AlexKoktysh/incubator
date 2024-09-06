@@ -7,10 +7,7 @@ import {
     validateBodyParams,
     validateQueryByPagination,
 } from "../../utils";
-import {
-    CreateBlogSchema,
-    querySchemaByPaginationForBlog,
-} from "./utils/validationSchemes";
+import { CreateBlogSchema } from "./utils/validationSchemes";
 
 import { queryValidationMiddleware } from "../../utils";
 import { blogsQueryRepository } from "./repositories";
@@ -22,7 +19,11 @@ blogsRouter.get(
     validateQueryByPagination(createQuerySchemaByPagination({})),
     blogsController.getAll,
 );
-blogsRouter.get("/:id", queryValidationMiddleware, blogsController.getById);
+blogsRouter.get(
+    "/:id",
+    queryValidationMiddleware(blogsQueryRepository.find),
+    blogsController.getById,
+);
 // blogsRouter.get(
 //     "/:id/posts",
 //     queryValidationMiddleware(blogsQueryRepository.find),

@@ -1,46 +1,60 @@
 import { Router } from "express";
 import { basicAuthMiddleware, bearerAuthMiddleware } from "../../middleware";
+// import { updateCommentValidationMiddleware } from "../comments/middlewares";
+import { postsController } from "./posts.controller";
 import {
-    inputValidationMiddleware,
+    createQuerySchemaByPagination,
     queryValidationMiddleware,
-    validateQuery,
-} from "./middlewares";
-import { updateCommentValidationMiddleware } from "../comments/middlewares";
+    validateBodyParams,
+    validateQueryByPagination,
+} from "../../utils";
+import { postsQueryRepository } from "./repositories";
+import { CreatePostSchema } from "./utils/validationSchemes";
+import { blogsQueryRepository } from "../blogs";
 
 export const postsRouter = Router();
 
-postsRouter.get("/", getAllPostsController);
-postsRouter.get("/:id", queryValidationMiddleware, getPostByIdController);
+postsRouter.get(
+    "/",
+    validateQueryByPagination(createQuerySchemaByPagination({})),
+    postsController.getAll,
+);
+postsRouter.get(
+    "/:id",
+    queryValidationMiddleware(postsQueryRepository.findById),
+    postsController.getById,
+);
 postsRouter.post(
     "/",
     basicAuthMiddleware,
-    inputValidationMiddleware,
-    createPostController,
+    validateBodyParams(CreatePostSchema),
+    queryValidationMiddleware(blogsQueryRepository.find),
+    postsController.create,
 );
 postsRouter.put(
     "/:id",
     basicAuthMiddleware,
     queryValidationMiddleware,
-    inputValidationMiddleware,
-    updatePostController,
+    validateBodyParams(CreatePostSchema),
+    postsController.update,
 );
 postsRouter.delete(
     "/:id",
     basicAuthMiddleware,
-    queryValidationMiddleware,
-    deletePostController,
+    queryValidationMiddleware(postsQueryRepository.findById),
+    postsController.delete,
 );
 
-postsRouter.get(
-    "/:id/comments",
-    queryValidationMiddleware,
-    validateQuery,
-    getComments,
-);
-postsRouter.post(
-    "/:id/comments",
-    bearerAuthMiddleware,
-    queryValidationMiddleware,
-    updateCommentValidationMiddleware,
-    createComment,
-);
+// postsRouter.get(
+//     "/:id/comments",
+//     queryValidationMiddleware,
+//     validateQuery,
+//     getComments,
+// );
+// postsRouter.post(
+//     "/:id/comments",
+//     bearerAuthMiddleware,
+//     queryValidationMiddleware,
+//     updateCommentValidationMiddleware,
+//     createComment,
+// );
