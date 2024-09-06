@@ -1,14 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { getUserByToken } from "../services/jwtService";
-import { UsersMongoRepository } from "../features/users/UsersMongoRepository";
-
-declare global {
-    namespace Express {
-        export interface Request {
-            userId: string | null;
-        }
-    }
-}
+import { jwtService } from "../services/jwt.service";
+import { usersQueryRepository } from "../features";
+import { HttpStatuses } from "../utils";
 
 export const bearerAuthMiddleware = async (
     req: Request,
@@ -16,19 +9,19 @@ export const bearerAuthMiddleware = async (
     next: NextFunction,
 ) => {
     if (!req.headers.authorization) {
-        res.send(401);
+        res.send(HttpStatuses.Unauthorized);
         return;
     }
 
     const token = req.headers.authorization.split(" ")[1];
-    const userByToken = getUserByToken(token);
+    const userByToken = jwtService.getUserByToken(token);
 
     if (!userByToken) {
-        res.send(401);
+        res.send(HttpStatuses.Unauthorized);
         return;
     }
-
-    req.userId = (await UsersMongoRepository.find(
+    req.userId = (await usersQueryRepository.findByCondition(
+        "_id",
         userByToken.id,
     )) as unknown as string;
     next();

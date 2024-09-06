@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { Schema } from "joi";
 
 import { FindEntityFunction, HttpStatuses } from "./types";
+import { ObjectId } from "mongodb";
 
 export const validateQueryByPagination = (validateSchema: Schema) => {
     return (req: Request, res: Response, next: NextFunction) => {
@@ -33,7 +34,7 @@ export const queryValidationMiddleware = <T>(
             return;
         }
 
-        const entity = await findEntity(req.params.id);
+        const entity = await findEntity(new ObjectId(req.params.id));
         if (!entity) {
             res.status(HttpStatuses.NotFound).json({
                 errorsMessages: [

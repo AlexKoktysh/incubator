@@ -1,4 +1,5 @@
-import { UserDBType } from "../features/users/types/user.db";
+import { UserDBType } from "../features";
+import { BlogDBType } from "../features/blogs/types";
 
 export const collectionsConfig = {
     BLOGS: "blogs",
@@ -8,7 +9,7 @@ export const collectionsConfig = {
 } as const;
 
 export type CollectionTypes = {
-    BLOGS: any;
+    BLOGS: BlogDBType;
     POSTS: any;
     USERS: UserDBType;
     COMMENTS: any;

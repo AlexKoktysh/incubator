@@ -5,7 +5,7 @@ import { ObjectId } from "mongodb";
 
 export const usersRepository = {
     async create(user: CreateUserDto): Promise<UserViewType | null> {
-        const newUser = {
+        const newUser: Partial<UserDBType> = {
             ...user,
             createdAt: new Date().toISOString(),
         };

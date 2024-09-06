@@ -1,28 +1,36 @@
 import { ObjectId } from "mongodb";
 import { database } from "../../../db";
-import { QueryPaginationByUserType, UserViewType } from "../types";
+import { QueryPaginationByUserType, UserDBType, UserViewType } from "../types";
+import { viewProtection } from "../helpers";
 
 export const usersQueryRepository = {
     async findByCondition(
         field: string,
         value: string | ObjectId,
     ): Promise<UserViewType | null> {
-        const user = await (
+        const user = (await (
             await database.getCollection("USERS")
-        ).findOne({ [field]: value }, { projection: { password: 0 } });
-        return user ? { ...user, id: user._id } : null;
+        ).findOne({ [field]: value }, viewProtection)) as UserViewType | null;
+        return user;
+    },
+
+    async findForLogin(loginOrEmail: string): Promise<UserDBType | null> {
+        const filter = {
+            $or: [{ login: loginOrEmail }, { email: loginOrEmail }],
+        };
+        return await (await database.getCollection("USERS")).findOne(filter);
     },
 
     async getMany(
-        query: QueryPaginationByUserType,
+        query: Required<QueryPaginationByUserType>,
     ): Promise<{ users: UserViewType[]; totalCount: number }> {
         const {
-            pageNumber = String(1),
-            pageSize = String(10),
-            sortBy = "createdAt",
-            sortDirection = "desc",
-            searchLoginTerm = null,
-            searchEmailTerm = null,
+            pageNumber,
+            pageSize,
+            sortBy,
+            sortDirection,
+            searchLoginTerm,
+            searchEmailTerm,
         } = query;
         const filter = {
             $or: [

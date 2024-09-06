@@ -1,6 +1,7 @@
 import { Response, Request } from "express";
 import {
     CreateUserDto,
+    ListUsersViewType,
     QueryPaginationByUserType,
     UserViewType,
 } from "./types";
@@ -8,20 +9,38 @@ import {
     getPaginationOptionsForResponse,
     HttpStatuses,
     OutputErrorsType,
+    setDefaultQueryParams,
 } from "../../utils";
-import { isUniqueUser } from "./helpers/checkUniqueUser";
-import { hashPassword } from "../../services/hashPasswordService";
+import { isUniqueUser } from "./helpers";
 import { usersQueryRepository, usersRepository } from "./repositories";
+import { bcryptService } from "../../services";
 
 export const usersController = {
     async getAllUsers(
         req: Request<{}, {}, {}, QueryPaginationByUserType>,
-        res: Response,
+        res: Response<ListUsersViewType>,
     ) {
         try {
-            const { users, totalCount } = await usersQueryRepository.getMany(
-                req.query,
-            );
+            const {
+                pageNumber,
+                pageSize,
+                sortBy,
+                sortDirection,
+                searchEmailTerm,
+                searchLoginTerm,
+            } = {
+                ...setDefaultQueryParams(req.query),
+                searchEmailTerm: req.query.searchEmailTerm ?? "",
+                searchLoginTerm: req.query.searchLoginTerm ?? "",
+            };
+            const { users, totalCount } = await usersQueryRepository.getMany({
+                pageNumber,
+                pageSize,
+                sortBy,
+                sortDirection,
+                searchEmailTerm,
+                searchLoginTerm,
+            });
             const pagination = getPaginationOptionsForResponse(
                 req.query,
                 totalCount,
@@ -50,7 +69,9 @@ export const usersController = {
                 });
                 return;
             }
-            const hashedPassword = await hashPassword(req.body.password);
+            const hashedPassword = await bcryptService.hashPassword(
+                req.body.password,
+            );
             const user = await usersRepository.create({
                 ...req.body,
                 password: hashedPassword,

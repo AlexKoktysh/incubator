@@ -3,8 +3,11 @@ export {
     queryValidationMiddleware,
 } from "./validateQueryParams";
 export { validateBodyParams } from "./validateBodyParams";
-export { getPaginationOptionsForResponse } from "./helpers";
 export { createQuerySchemaByPagination } from "./createQuerySchema";
+export {
+    getPaginationOptionsForResponse,
+    setDefaultQueryParams,
+} from "./helpers";
 
 export {
     OutputErrorsType,
