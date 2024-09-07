@@ -1,5 +1,9 @@
-export { usersRouter, UserDBType } from "./users";
+export { usersRouter, usersQueryRepository, UserDBType } from "./users";
 export { authRouter } from "./auth";
-export { blogsRouter, BlogDBType } from "./blogs";
-export { postsRouter, PostDbType } from "./posts";
-export { commentsRouter, CommentDBType } from "./comments";
+export { blogsRouter, blogsQueryRepository, BlogDBType } from "./blogs";
+export { postsRouter, postsQueryRepository, PostDbType } from "./posts";
+export {
+    commentsRouter,
+    commentsQueryRepository,
+    CommentDBType,
+} from "./comments";

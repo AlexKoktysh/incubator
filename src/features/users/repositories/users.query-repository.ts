@@ -14,6 +14,16 @@ export const usersQueryRepository = {
         return user;
     },
 
+    async findById(id: string | ObjectId) {
+        const user = (await (
+            await database.getCollection("USERS")
+        ).findOne(
+            { _id: new ObjectId(id) },
+            viewProtection,
+        )) as UserViewType | null;
+        return user;
+    },
+
     async findForLogin(loginOrEmail: string): Promise<UserDBType | null> {
         const filter = {
             $or: [{ login: loginOrEmail }, { email: loginOrEmail }],

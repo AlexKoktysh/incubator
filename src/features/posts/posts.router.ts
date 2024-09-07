@@ -9,8 +9,8 @@ import {
 } from "../../utils";
 import { postsQueryRepository } from "./repositories";
 import { CreatePostSchema } from "./utils/validationSchemes";
-import { blogsQueryRepository } from "../blogs";
 import { UpdateCommentSchema } from "../comments/utils/validationSchemes";
+import { blogsQueryRepository } from "../blogs/repositories/blogs.query-repository";
 
 export const postsRouter = Router();
 

@@ -1,12 +1,16 @@
 import { Router } from "express";
 import { basicAuthMiddleware } from "../../middleware";
 import { usersController } from "./users.controller";
-import { validateBodyParams, validateQueryByPagination } from "../../utils";
+import {
+    queryValidationMiddleware,
+    validateBodyParams,
+    validateQueryByPagination,
+} from "../../utils";
 import {
     CreateUserSchema,
     querySchemaByPagination,
 } from "./utils/validationSchemes";
-import { queryValidationByIdMiddleware } from "./middlewares/queryValidation";
+import { usersQueryRepository } from "./repositories";
 
 export const usersRouter = Router();
 
@@ -25,6 +29,6 @@ usersRouter.post(
 usersRouter.delete(
     "/:id",
     basicAuthMiddleware,
-    queryValidationByIdMiddleware,
+    queryValidationMiddleware(usersQueryRepository.findById),
     usersController.deleteUser,
 );

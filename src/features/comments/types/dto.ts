@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { QueryPaginationType } from "../../../utils";
 
 export type UpdateCommentDto = {
@@ -9,7 +10,7 @@ export interface QueryPaginationByCommentsType extends QueryPaginationType {
 }
 
 export type CommentatorInfoType = {
-    userId: string;
+    userId: ObjectId;
     userLogin: string;
 };
 

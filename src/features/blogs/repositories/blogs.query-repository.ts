@@ -28,9 +28,12 @@ export const blogsQueryRepository = {
             .toArray();
         return { blogs: blogs as BlogViewType[], totalCount };
     },
-    async find(id: ObjectId): Promise<BlogViewType | null> {
+    async find(id: string | ObjectId): Promise<BlogViewType | null> {
         return (await (
             await database.getCollection("BLOGS")
-        ).findOne({ _id: id }, viewProtection)) as BlogViewType | null;
+        ).findOne(
+            { _id: new ObjectId(id) },
+            viewProtection,
+        )) as BlogViewType | null;
     },
 };

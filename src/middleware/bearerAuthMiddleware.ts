@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { jwtService } from "../services/jwt.service";
-import { usersQueryRepository } from "../features";
 import { HttpStatuses } from "../utils";
+import { usersQueryRepository } from "../features";
 
 export const bearerAuthMiddleware = async (
     req: Request,

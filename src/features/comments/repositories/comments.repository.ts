@@ -25,17 +25,17 @@ export const commentsRepository = {
         ).updateOne({ id: id }, { $set: newComment });
     },
     async create(comment: UpdateCommentDto, user: UserViewType) {
-        const newComment: CommentDBType = {
+        const newComment: Partial<CommentDBType> = {
             content: comment.content,
             createdAt: new Date().toISOString(),
             commentatorInfo: {
-                userId: new ObjectId(user.id),
+                userId: user.id,
                 userLogin: user.login,
             },
         };
         const response = await (
             await database.getCollection("COMMENTS")
-        ).insertOne(newComment);
+        ).insertOne(newComment as CommentDBType);
         return await commentsQueryRepository.find(response.insertedId);
     },
 };
