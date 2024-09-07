@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import basicAuth from "basic-auth";
+import { HttpStatuses } from "../utils";
 
 export const basicAuthMiddleware = (
     req: Request,
@@ -11,6 +12,6 @@ export const basicAuthMiddleware = (
         return next();
     } else {
         res.set("Authorization", `Basic realm="example"`);
-        return res.status(401).send("Unauthorized");
+        return res.status(HttpStatuses.Unauthorized).send("Unauthorized");
     }
 };

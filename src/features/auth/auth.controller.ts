@@ -2,6 +2,7 @@ import { Response, Request } from "express";
 import { bcryptService, jwtService } from "../../services";
 import { LoginUserDto } from "./types";
 import { usersQueryRepository } from "../users";
+import { HttpStatuses } from "../../utils";
 
 export const authController = {
     async loginUser(req: Request<{}, {}, LoginUserDto>, res: Response) {
@@ -9,7 +10,9 @@ export const authController = {
             const { loginOrEmail, password } = req.body;
             const user = await usersQueryRepository.findForLogin(loginOrEmail);
             if (!user?._id) {
-                res.status(401).send({ error: "Wrong email or password." });
+                res.status(HttpStatuses.Unauthorized).send({
+                    error: "Wrong email or password.",
+                });
                 return;
             }
             const isPasswordValid = await bcryptService.comparePassword(
@@ -17,13 +20,15 @@ export const authController = {
                 user.password,
             );
             if (!isPasswordValid) {
-                res.status(401).send({ error: "Wrong email or password." });
+                res.status(HttpStatuses.Unauthorized).send({
+                    error: "Wrong email or password.",
+                });
                 return;
             }
             const { accessToken } = jwtService.generateJwtTokens(user);
-            res.status(200).json({ accessToken: accessToken });
+            res.status(HttpStatuses.Success).json({ accessToken: accessToken });
         } catch (err: any) {
-            res.status(500).json(err);
+            res.status(HttpStatuses.Error).json(err);
         }
     },
     async getUserInfo(req: Request, res: Response) {
@@ -32,9 +37,9 @@ export const authController = {
                 "id",
                 req.userId as string,
             );
-            res.status(200).json(user);
+            res.status(HttpStatuses.Success).json(user);
         } catch (err) {
-            res.status(500).json(err);
+            res.status(HttpStatuses.Error).json(err);
         }
     },
 };

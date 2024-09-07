@@ -1,9 +1,15 @@
 import express from "express";
 import cors from "cors";
 import { TestingsRouter } from "./testing";
-import { CommentsRouter } from "./features/comments";
-import { authRouter, blogsRouter, postsRouter, usersRouter } from "./features";
+import {
+    authRouter,
+    blogsRouter,
+    commentsRouter,
+    postsRouter,
+    usersRouter,
+} from "./features";
 import { pathConfig } from "./config";
+import { HttpStatuses } from "./utils";
 
 export const app = express();
 app.use(express.json());
@@ -13,9 +19,9 @@ app.use(`${pathConfig.BLOGS}`, blogsRouter);
 app.use(`${pathConfig.POST}`, postsRouter);
 app.use(`${pathConfig.USERS}`, usersRouter);
 app.use(`${pathConfig.AUTH}`, authRouter);
-app.use(`${pathConfig.COMMENTS}`, CommentsRouter);
+app.use(`${pathConfig.COMMENTS}`, commentsRouter);
 
 app.use("/testing", TestingsRouter);
 app.get("/", (_req, res) => {
-    res.status(200).json({ version: "1.0" });
+    res.status(HttpStatuses.Success).json({ version: "1.0" });
 });

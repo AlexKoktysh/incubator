@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { basicAuthMiddleware, bearerAuthMiddleware } from "../../middleware";
-// import { updateCommentValidationMiddleware } from "../comments/middlewares";
 import { postsController } from "./posts.controller";
 import {
     createQuerySchemaByPagination,
@@ -11,6 +10,7 @@ import {
 import { postsQueryRepository } from "./repositories";
 import { CreatePostSchema } from "./utils/validationSchemes";
 import { blogsQueryRepository } from "../blogs";
+import { UpdateCommentSchema } from "../comments/utils/validationSchemes";
 
 export const postsRouter = Router();
 
@@ -45,16 +45,17 @@ postsRouter.delete(
     postsController.delete,
 );
 
-// postsRouter.get(
-//     "/:id/comments",
-//     queryValidationMiddleware,
-//     validateQuery,
-//     getComments,
-// );
-// postsRouter.post(
-//     "/:id/comments",
-//     bearerAuthMiddleware,
-//     queryValidationMiddleware,
-//     updateCommentValidationMiddleware,
-//     createComment,
-// );
+postsRouter.get(
+    "/:id/comments",
+    queryValidationMiddleware,
+    queryValidationMiddleware(postsQueryRepository.findById),
+    validateQueryByPagination(createQuerySchemaByPagination({})),
+    postsController.getComments,
+);
+postsRouter.post(
+    "/:id/comments",
+    bearerAuthMiddleware,
+    queryValidationMiddleware,
+    validateBodyParams(UpdateCommentSchema),
+    postsController.createComment,
+);

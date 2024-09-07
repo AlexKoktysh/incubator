@@ -8,10 +8,14 @@ import {
 import {
     HttpStatuses,
     OutputErrorsType,
+    QueryPaginationType,
     setDefaultQueryParams,
 } from "../../utils";
 import { blogsQueryRepository, blogsRepository } from "./repositories";
 import { ObjectId } from "mongodb";
+import { postsQueryRepository } from "../posts";
+import { CreatePostDto, PostViewType } from "../posts/types";
+import { postRepository } from "../posts/repositories";
 
 export const blogsController = {
     async getAll(
@@ -88,67 +92,49 @@ export const blogsController = {
     ) {
         try {
             await blogsRepository.delete(new ObjectId(req.params.id));
-            res.status(204).json("OK");
+            res.status(HttpStatuses.NoContent).json("OK");
         } catch (err: any) {
-            res.status(500).json(err);
+            res.status(HttpStatuses.Error).json(err);
         }
     },
-};
-
-export const createPostController = async (
-    req: Request<{ id: string }, any, Omit<CreatePostDto, " blogId">>,
-    res: Response<PostType | OutputErrorsType>,
-) => {
-    try {
-        const newPostId = await PostsMongoRepository.create({
-            ...req.body,
-            blogId: req.params.id,
-        });
-        const post = await PostsMongoRepository.find(newPostId);
-        res.status(201).json(post as PostDbType);
-    } catch (err: any) {
-        console.log("err", err);
-        res.status(500).json(err);
-    }
-};
-
-export const getPostsByBlogId = async (
-    req: Request<
-        { id: string },
-        {},
-        {},
-        {
-            pageNumber?: string;
-            pageSize?: string;
-            sortBy?: string;
-            sortDirection?: "asc" | "desc";
+    async createPost(
+        req: Request<{ id: string }, any, Omit<CreatePostDto, " blogId">>,
+        res: Response<PostViewType | OutputErrorsType>,
+    ) {
+        try {
+            const newPost = await postRepository.create({
+                ...req.body,
+                blogId: req.params.id,
+            });
+            res.status(HttpStatuses.Created).json(newPost as PostViewType);
+        } catch (err: any) {
+            res.status(HttpStatuses.Error).json(err);
         }
-    >,
-    res: Response<any | OutputErrorsType>,
-) => {
-    const {
-        pageNumber = String(1),
-        pageSize = String(10),
-        sortBy = "createdAt",
-        sortDirection = "desc",
-    } = req.query;
-    try {
-        const { posts, totalCount } =
-            await PostsMongoRepository.getAllByCondition({
+    },
+    async getPosts(
+        req: Request<{ id: string }, {}, {}, Required<QueryPaginationType>>,
+        res: Response<any | OutputErrorsType>,
+    ) {
+        try {
+            const { pageNumber, pageSize, sortBy, sortDirection } = {
+                ...setDefaultQueryParams(req.query),
+            };
+            const { posts, totalCount } = await postsQueryRepository.getAll({
                 blogId: req.params.id,
                 pageNumber,
                 pageSize,
                 sortBy,
                 sortDirection,
             });
-        res.status(200).json({
-            items: posts,
-            totalCount,
-            pagesCount: pageSize ? Math.ceil(totalCount / +pageSize) : 0,
-            page: +pageNumber,
-            pageSize: +pageSize,
-        });
-    } catch (err: any) {
-        res.status(500).json(err);
-    }
+            res.status(HttpStatuses.Success).json({
+                items: posts,
+                totalCount,
+                pagesCount: pageSize ? Math.ceil(totalCount / +pageSize) : 0,
+                page: +pageNumber,
+                pageSize: +pageSize,
+            });
+        } catch (err: any) {
+            res.status(HttpStatuses.Error).json(err);
+        }
+    },
 };

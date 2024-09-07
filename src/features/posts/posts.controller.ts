@@ -1,5 +1,10 @@
 import { Response, Request } from "express";
-import { OutputErrorsType, setDefaultQueryParams } from "../../utils";
+import {
+    HttpStatuses,
+    OutputErrorsType,
+    QueryPaginationType,
+    setDefaultQueryParams,
+} from "../../utils";
 import { postRepository, postsQueryRepository } from "./repositories";
 import {
     CreatePostDto,
@@ -7,6 +12,13 @@ import {
     QueryPaginationByPostType,
 } from "./types";
 import { ObjectId } from "mongodb";
+import {
+    commentsQueryRepository,
+    commentsRepository,
+} from "../comments/repositories";
+import { CommentViewType, UpdateCommentDto } from "../comments/types";
+import { usersQueryRepository } from "../users";
+import { UserViewType } from "../users/types";
 
 export const postsController = {
     async getAll(
@@ -24,7 +36,7 @@ export const postsController = {
                 sortDirection,
                 blogId: "",
             });
-            res.status(200).json({
+            res.status(HttpStatuses.Success).json({
                 items: posts,
                 totalCount,
                 pagesCount: Math.ceil(totalCount / +pageSize),
@@ -32,8 +44,7 @@ export const postsController = {
                 pageSize: +pageSize,
             });
         } catch (err: any) {
-            console.log("error", err);
-            res.status(500).json(err);
+            res.status(HttpStatuses.Error).json(err);
         }
     },
     async getById(
@@ -44,9 +55,9 @@ export const postsController = {
             const post = await postsQueryRepository.findById(
                 new ObjectId(req.params.id),
             );
-            res.status(200).json(post as PostViewType);
+            res.status(HttpStatuses.Success).json(post as PostViewType);
         } catch (err: any) {
-            res.status(500).json(err);
+            res.status(HttpStatuses.Error).json(err);
         }
     },
     async create(
@@ -55,9 +66,9 @@ export const postsController = {
     ) {
         try {
             const newPost = await postRepository.create(req.body);
-            res.status(201).json(newPost as PostViewType);
+            res.status(HttpStatuses.Created).json(newPost as PostViewType);
         } catch (err: any) {
-            res.status(500).json(err);
+            res.status(HttpStatuses.Error).json(err);
         }
     },
     async update(
@@ -66,9 +77,9 @@ export const postsController = {
     ) {
         try {
             await postRepository.update(req.body, req.params.id);
-            res.status(204).json("OK");
+            res.status(HttpStatuses.NoContent).json("OK");
         } catch (err: any) {
-            res.status(500).json(err);
+            res.status(HttpStatuses.Error).json(err);
         }
     },
     async delete(
@@ -77,65 +88,57 @@ export const postsController = {
     ) {
         try {
             await postRepository.delete(req.params.id);
-            res.status(204).json("OK");
+            res.status(HttpStatuses.NoContent).json("OK");
         } catch (err: any) {
-            res.status(500).json(err);
+            res.status(HttpStatuses.Error).json(err);
+        }
+    },
+
+    async getComments(
+        req: Request<{ id: string }, {}, {}, Required<QueryPaginationType>>,
+        res: Response,
+    ) {
+        try {
+            const { pageNumber, pageSize, sortBy, sortDirection } = {
+                ...setDefaultQueryParams(req.query),
+            };
+            const { comments, totalCount } =
+                await commentsQueryRepository.getByPostId({
+                    pageNumber,
+                    pageSize,
+                    sortBy,
+                    sortDirection,
+                    postId: req.params.id,
+                });
+            res.status(HttpStatuses.Success).json({
+                items: comments,
+                totalCount,
+                pagesCount: Math.ceil(totalCount / +pageSize),
+                page: +pageNumber,
+                pageSize: +pageSize,
+            });
+        } catch (err: any) {
+            res.status(HttpStatuses.Error).json(err);
+        }
+    },
+    async createComment(
+        req: Request<{ id: string }, any, UpdateCommentDto>,
+        res: Response<CommentViewType | OutputErrorsType>,
+    ) {
+        try {
+            const user = await usersQueryRepository.findByCondition(
+                "_id",
+                req.userId as string,
+            );
+            const newComment = await commentsRepository.create(
+                req.body,
+                user as UserViewType,
+            );
+            res.status(HttpStatuses.Created).json(
+                newComment as CommentViewType,
+            );
+        } catch (err: any) {
+            res.status(HttpStatuses.Error).json(err);
         }
     },
 };
-
-// export const getComments = async (
-//     req: Request<
-//         { id: string },
-//         {},
-//         {},
-//         {
-//             pageNumber?: string;
-//             pageSize?: string;
-//             sortBy?: string;
-//             sortDirection?: "asc" | "desc";
-//         }
-//     >,
-//     res: Response,
-// ) => {
-//     try {
-//         const {
-//             pageNumber = String(1),
-//             pageSize = String(10),
-//             sortBy = "createdAt",
-//             sortDirection = "desc",
-//         } = req.query;
-//         const { comments, totalCount } = await PostsRepository.getAllComments({
-//             pageNumber,
-//             pageSize,
-//             sortBy,
-//             sortDirection,
-//         });
-//         res.status(200).json({
-//             items: comments,
-//             totalCount,
-//             pagesCount: Math.ceil(totalCount / +pageSize),
-//             page: +pageNumber,
-//             pageSize: +pageSize,
-//         });
-//     } catch (err: any) {
-//         res.status(500).json(err);
-//     }
-// };
-
-// export const createComment = async (
-//     req: Request<{ id: string }, any, UpdateCommentDto>,
-//     res: Response<CommentType | OutputErrorsType>,
-// ) => {
-//     try {
-//         const user = await AuthMongoRepository.find(req.userId as string);
-//         const commentId = await CommentMongoRepository.create(
-//             req.body,
-//             user as UserDbType,
-//         );
-//         const comment = await CommentMongoRepository.find(commentId);
-//         res.status(201).json(comment as CommentType);
-//     } catch (err: any) {
-//         res.status(500).json(err);
-//     }
-// };
