@@ -124,7 +124,8 @@ export const postsController = {
         res: Response<CommentViewType | OutputErrorsType>,
     ) {
         try {
-            const user = await usersQueryRepository.findById(
+            const user = await usersQueryRepository.findByCondition(
+                "_id",
                 req.userId as string,
             );
             const newComment = await commentsRepository.create(

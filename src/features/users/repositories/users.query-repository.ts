@@ -6,24 +6,19 @@ import { viewProtection } from "../helpers";
 export const usersQueryRepository = {
     async findByCondition(
         field: string,
-        value: string | ObjectId,
+        value: string,
     ): Promise<UserViewType | null> {
         const user = (await (
             await database.getCollection("USERS")
         ).findOne(
-            { [field]: value },
+            { [field]: field === "_id" ? new ObjectId(value) : value },
             { projection: viewProtection },
         )) as UserViewType | null;
         return user;
     },
 
-    async findById(id: string) {
-        const user = (await (
-            await database.getCollection("USERS")
-        ).findOne(
-            { _id: new ObjectId(id) },
-            { projection: viewProtection },
-        )) as UserViewType | null;
+    async findById(id: string): Promise<UserViewType | null> {
+        const user = await this.findByCondition("_id", id);
         return user;
     },
 

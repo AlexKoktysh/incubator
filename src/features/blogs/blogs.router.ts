@@ -16,11 +16,7 @@ import { CreatePostSchemaForBlog } from "../posts/utils/validationSchemes";
 
 export const blogsRouter = Router();
 
-blogsRouter.get(
-    "/",
-    // validateQueryByPagination(createQuerySchemaByPagination({})),
-    blogsController.getAll,
-);
+blogsRouter.get("/", blogsController.getAll);
 blogsRouter.get(
     "/:id",
     queryValidationIdMiddleware,

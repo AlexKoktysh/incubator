@@ -37,7 +37,7 @@ export const authController = {
     async getUserInfo(req: Request, res: Response) {
         try {
             const user = await usersQueryRepository.findByCondition(
-                "id",
+                "_id",
                 req.userId as string,
             );
             res.status(HttpStatuses.Success).json(user);

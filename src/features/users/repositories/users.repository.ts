@@ -14,7 +14,7 @@ export const usersRepository = {
         ).insertOne(newUser as UserDBType);
         const createdUser = await usersQueryRepository.findByCondition(
             "_id",
-            response.insertedId,
+            response.insertedId.toString(),
         );
         return createdUser;
     },
