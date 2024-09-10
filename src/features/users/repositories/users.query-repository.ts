@@ -22,13 +22,6 @@ export const usersQueryRepository = {
         return user;
     },
 
-    async findForLogin(loginOrEmail: string): Promise<UserDBType | null> {
-        const filter = {
-            $or: [{ login: loginOrEmail }, { email: loginOrEmail }],
-        };
-        return await (await database.getCollection("USERS")).findOne(filter);
-    },
-
     async getMany(
         query: Required<QueryPaginationByUserType>,
     ): Promise<{ users: UserViewType[]; totalCount: number }> {

@@ -25,4 +25,10 @@ export const usersRepository = {
             _id: new ObjectId(id),
         });
     },
+    async findForLogin(loginOrEmail: string): Promise<UserDBType | null> {
+        const filter = {
+            $or: [{ login: loginOrEmail }, { email: loginOrEmail }],
+        };
+        return await (await database.getCollection("USERS")).findOne(filter);
+    },
 };

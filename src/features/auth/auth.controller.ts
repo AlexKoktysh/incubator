@@ -3,12 +3,13 @@ import { bcryptService, jwtService } from "../../services";
 import { LoginUserDto } from "./types";
 import { UserDBType, usersQueryRepository } from "../users";
 import { HttpStatuses } from "../../utils";
+import { usersRepository } from "../users/repositories";
 
 export const authController = {
     async loginUser(req: Request<{}, {}, LoginUserDto>, res: Response) {
         try {
             const { loginOrEmail, password } = req.body;
-            const user = await usersQueryRepository.findForLogin(loginOrEmail);
+            const user = await usersRepository.findForLogin(loginOrEmail);
             if (!user?._id) {
                 res.status(HttpStatuses.Unauthorized).send({
                     error: "Wrong email or password.",
