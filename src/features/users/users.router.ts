@@ -2,6 +2,7 @@ import { Router } from "express";
 import { basicAuthMiddleware } from "../../middleware";
 import { usersController } from "./users.controller";
 import {
+    queryValidationIdMiddleware,
     queryValidationMiddleware,
     validateBodyParams,
     validateQueryByPagination,
@@ -29,6 +30,7 @@ usersRouter.post(
 usersRouter.delete(
     "/:id",
     basicAuthMiddleware,
+    queryValidationIdMiddleware,
     queryValidationMiddleware(usersQueryRepository.findById),
     usersController.deleteUser,
 );

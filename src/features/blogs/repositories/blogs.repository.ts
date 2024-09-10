@@ -13,10 +13,10 @@ export const blogsRepository = {
         const response = await (
             await database.getCollection("BLOGS")
         ).insertOne(newBlog as BlogDBType);
-        return await blogsQueryRepository.find(response.insertedId);
+        return await blogsQueryRepository.find(response.insertedId.toString());
     },
-    async update(blog: CreateBlogDto, id: ObjectId) {
-        const findBlog = await blogsQueryRepository.find(new ObjectId(id));
+    async update(blog: CreateBlogDto, id: string) {
+        const findBlog = await blogsQueryRepository.find(id);
         const newBlog = {
             ...findBlog,
             ...blog,
@@ -25,7 +25,7 @@ export const blogsRepository = {
             await database.getCollection("BLOGS")
         ).updateOne({ _id: new ObjectId(id) }, { $set: newBlog });
     },
-    async delete(id: ObjectId) {
+    async delete(id: string) {
         await (
             await database.getCollection("BLOGS")
         ).deleteOne({

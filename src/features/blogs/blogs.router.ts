@@ -4,6 +4,7 @@ import { blogsController } from "./blogs.controller";
 import { basicAuthMiddleware } from "../../middleware";
 import {
     createQuerySchemaByPagination,
+    queryValidationIdMiddleware,
     validateBodyParams,
     validateQueryByPagination,
 } from "../../utils";
@@ -11,22 +12,24 @@ import { CreateBlogSchema } from "./utils/validationSchemes";
 
 import { queryValidationMiddleware } from "../../utils";
 import { blogsQueryRepository } from "./repositories";
-import { CreatePostSchema } from "../posts/utils/validationSchemes";
+import { CreatePostSchemaForBlog } from "../posts/utils/validationSchemes";
 
 export const blogsRouter = Router();
 
 blogsRouter.get(
     "/",
-    validateQueryByPagination(createQuerySchemaByPagination({})),
+    // validateQueryByPagination(createQuerySchemaByPagination({})),
     blogsController.getAll,
 );
 blogsRouter.get(
     "/:id",
+    queryValidationIdMiddleware,
     queryValidationMiddleware(blogsQueryRepository.find),
     blogsController.getById,
 );
 blogsRouter.get(
     "/:id/posts",
+    queryValidationIdMiddleware,
     queryValidationMiddleware(blogsQueryRepository.find),
     validateQueryByPagination(createQuerySchemaByPagination({})),
     blogsController.getPosts,
@@ -40,13 +43,15 @@ blogsRouter.post(
 blogsRouter.post(
     "/:id/posts",
     basicAuthMiddleware,
+    queryValidationIdMiddleware,
     queryValidationMiddleware(blogsQueryRepository.find),
-    validateBodyParams(CreatePostSchema),
+    validateBodyParams(CreatePostSchemaForBlog),
     blogsController.createPost,
 );
 blogsRouter.put(
     "/:id",
     basicAuthMiddleware,
+    queryValidationIdMiddleware,
     queryValidationMiddleware(blogsQueryRepository.find),
     validateBodyParams(CreateBlogSchema),
     blogsController.update,
@@ -54,6 +59,7 @@ blogsRouter.put(
 blogsRouter.delete(
     "/:id",
     basicAuthMiddleware,
+    queryValidationIdMiddleware,
     queryValidationMiddleware(blogsQueryRepository.find),
     blogsController.delete,
 );

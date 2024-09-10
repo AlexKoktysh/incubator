@@ -12,7 +12,6 @@ import {
     setDefaultQueryParams,
 } from "../../utils";
 import { blogsQueryRepository, blogsRepository } from "./repositories";
-import { ObjectId } from "mongodb";
 import { postsQueryRepository } from "../posts";
 import { CreatePostDto, PostViewType } from "../posts/types";
 import { postRepository } from "../posts/repositories";
@@ -56,9 +55,7 @@ export const blogsController = {
         res: Response<BlogViewType | OutputErrorsType>,
     ) {
         try {
-            const blog = await blogsQueryRepository.find(
-                new ObjectId(req.params.id),
-            );
+            const blog = await blogsQueryRepository.find(req.params.id);
             res.status(HttpStatuses.Success).json(blog as BlogViewType);
         } catch (err: any) {
             res.status(HttpStatuses.Error).json(err);
@@ -80,7 +77,7 @@ export const blogsController = {
         res: Response<BlogViewType | OutputErrorsType | string>,
     ) {
         try {
-            await blogsRepository.update(req.body, new ObjectId(req.params.id));
+            await blogsRepository.update(req.body, req.params.id);
             res.status(HttpStatuses.NoContent).json("OK");
         } catch (err: any) {
             res.status(HttpStatuses.Error).json(err);
@@ -91,7 +88,7 @@ export const blogsController = {
         res: Response<OutputErrorsType | string>,
     ) {
         try {
-            await blogsRepository.delete(new ObjectId(req.params.id));
+            await blogsRepository.delete(req.params.id);
             res.status(HttpStatuses.NoContent).json("OK");
         } catch (err: any) {
             res.status(HttpStatuses.Error).json(err);

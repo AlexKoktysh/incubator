@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import { Schema } from "joi";
 
 import { FindEntityFunction, HttpStatuses } from "./types";
-import { ObjectId } from "mongodb";
 
 export const validateQueryByPagination = (validateSchema: Schema) => {
     return (req: Request, res: Response, next: NextFunction) => {
@@ -21,20 +20,27 @@ export const validateQueryByPagination = (validateSchema: Schema) => {
     };
 };
 
+export const queryValidationIdMiddleware = (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
+    if (!req.params.id) {
+        res.status(HttpStatuses.NotFound).json({
+            errorsMessages: [
+                { message: "Please, check you url address.", field: "id" },
+            ],
+        });
+        return;
+    }
+    next();
+};
+
 export const queryValidationMiddleware = <T>(
     findEntity: FindEntityFunction<T>,
 ) => {
     return async (req: Request, res: Response, next: NextFunction) => {
-        if (!req.params.id) {
-            res.status(HttpStatuses.NotFound).json({
-                errorsMessages: [
-                    { message: "Please, check you url address.", field: "id" },
-                ],
-            });
-            return;
-        }
-
-        const entity = await findEntity(new ObjectId(req.params.id));
+        const entity = await findEntity(req.params.id);
         if (!entity) {
             res.status(HttpStatuses.NotFound).json({
                 errorsMessages: [

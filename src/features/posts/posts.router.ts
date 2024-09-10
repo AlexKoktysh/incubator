@@ -1,8 +1,9 @@
-import { Router } from "express";
+import { Router, NextFunction, Request, Response } from "express";
 import { basicAuthMiddleware, bearerAuthMiddleware } from "../../middleware";
 import { postsController } from "./posts.controller";
 import {
     createQuerySchemaByPagination,
+    queryValidationIdMiddleware,
     queryValidationMiddleware,
     validateBodyParams,
     validateQueryByPagination,
@@ -21,33 +22,35 @@ postsRouter.get(
 );
 postsRouter.get(
     "/:id",
+    queryValidationIdMiddleware,
     queryValidationMiddleware(postsQueryRepository.findById),
     postsController.getById,
 );
 postsRouter.post(
     "/",
     basicAuthMiddleware,
-    validateBodyParams(CreatePostSchema),
-    queryValidationMiddleware(blogsQueryRepository.find),
+    validateBodyParams(CreatePostSchema, blogsQueryRepository.find, "blogId"),
     postsController.create,
 );
 postsRouter.put(
     "/:id",
     basicAuthMiddleware,
-    queryValidationMiddleware,
-    validateBodyParams(CreatePostSchema),
+    queryValidationIdMiddleware,
+    queryValidationMiddleware(postsQueryRepository.findById),
+    validateBodyParams(CreatePostSchema, blogsQueryRepository.find, "blogId"),
     postsController.update,
 );
 postsRouter.delete(
     "/:id",
     basicAuthMiddleware,
+    queryValidationIdMiddleware,
     queryValidationMiddleware(postsQueryRepository.findById),
     postsController.delete,
 );
 
 postsRouter.get(
     "/:id/comments",
-    queryValidationMiddleware,
+    queryValidationIdMiddleware,
     queryValidationMiddleware(postsQueryRepository.findById),
     validateQueryByPagination(createQuerySchemaByPagination({})),
     postsController.getComments,
@@ -55,7 +58,8 @@ postsRouter.get(
 postsRouter.post(
     "/:id/comments",
     bearerAuthMiddleware,
-    queryValidationMiddleware,
+    queryValidationIdMiddleware,
+    queryValidationMiddleware(postsQueryRepository.findById),
     validateBodyParams(UpdateCommentSchema),
     postsController.createComment,
 );

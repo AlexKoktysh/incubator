@@ -52,9 +52,7 @@ export const postsController = {
         res: Response<PostViewType | OutputErrorsType>,
     ) {
         try {
-            const post = await postsQueryRepository.findById(
-                new ObjectId(req.params.id),
-            );
+            const post = await postsQueryRepository.findById(req.params.id);
             res.status(HttpStatuses.Success).json(post as PostViewType);
         } catch (err: any) {
             res.status(HttpStatuses.Error).json(err);
@@ -126,13 +124,13 @@ export const postsController = {
         res: Response<CommentViewType | OutputErrorsType>,
     ) {
         try {
-            const user = await usersQueryRepository.findByCondition(
-                "_id",
+            const user = await usersQueryRepository.findById(
                 req.userId as string,
             );
             const newComment = await commentsRepository.create(
                 req.body,
                 user as UserViewType,
+                req.params.id,
             );
             res.status(HttpStatuses.Created).json(
                 newComment as CommentViewType,

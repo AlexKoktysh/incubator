@@ -4,10 +4,13 @@ import { viewProtection } from "../helpers";
 import { PostViewType, QueryPaginationByPostType } from "../types";
 
 export const postsQueryRepository = {
-    async findById(id: ObjectId): Promise<PostViewType | null> {
+    async findById(id: string | ObjectId): Promise<PostViewType | null> {
         return (await (
             await database.getCollection("POSTS")
-        ).findOne({ _id: id }, viewProtection)) as PostViewType | null;
+        ).findOne(
+            { _id: new ObjectId(id) },
+            { projection: viewProtection },
+        )) as PostViewType | null;
     },
     async getAll({
         blogId,
@@ -24,7 +27,7 @@ export const postsQueryRepository = {
             await database.getCollection("POSTS")
         )
             .find(condition, {
-                ...viewProtection,
+                projection: viewProtection,
                 sort: { [sortBy]: sortDirection === "asc" ? 1 : -1 },
                 skip: (+pageNumber - 1) * +pageSize,
                 limit: parseInt(pageSize),

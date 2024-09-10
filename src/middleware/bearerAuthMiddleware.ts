@@ -20,9 +20,7 @@ export const bearerAuthMiddleware = async (
         res.send(HttpStatuses.Unauthorized);
         return;
     }
-    req.userId = (await usersQueryRepository.findByCondition(
-        "_id",
-        userByToken.id,
-    )) as unknown as string;
+    const user = await usersQueryRepository.findById(userByToken.id);
+    req.userId = user?.id.toString() as unknown as string;
     next();
 };

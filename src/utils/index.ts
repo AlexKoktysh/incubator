@@ -1,6 +1,7 @@
 export {
     validateQueryByPagination,
     queryValidationMiddleware,
+    queryValidationIdMiddleware,
 } from "./validateQueryParams";
 export { validateBodyParams } from "./validateBodyParams";
 export { createQuerySchemaByPagination } from "./createQuerySchema";

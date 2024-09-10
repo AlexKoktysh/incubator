@@ -22,16 +22,21 @@ export const commentsRepository = {
         };
         await (
             await database.getCollection("COMMENTS")
-        ).updateOne({ id: id }, { $set: newComment });
+        ).updateOne({ _id: new ObjectId(id) }, { $set: newComment });
     },
-    async create(comment: UpdateCommentDto, user: UserViewType) {
+    async create(
+        comment: UpdateCommentDto,
+        user: UserViewType,
+        postId: string,
+    ) {
         const newComment: Partial<CommentDBType> = {
             content: comment.content,
             createdAt: new Date().toISOString(),
             commentatorInfo: {
-                userId: user.id,
+                userId: new ObjectId(user.id) as unknown as string,
                 userLogin: user.login,
             },
+            postId: new ObjectId(postId),
         };
         const response = await (
             await database.getCollection("COMMENTS")

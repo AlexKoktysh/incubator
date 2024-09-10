@@ -1,3 +1,7 @@
 export const viewProtection = {
-    projection: { _id: 0, id: "$_id", password: 0 },
+    _id: 0,
+    id: "$_id",
+    login: 1,
+    email: 1,
+    createdAt: 1,
 };

@@ -1,4 +1,3 @@
-import { ObjectId } from "mongodb";
 import { PaginationType, QueryPaginationType } from "../../../utils";
 
 export type CreateUserDto = {
@@ -8,7 +7,7 @@ export type CreateUserDto = {
 };
 
 export type UserViewType = {
-    id: ObjectId;
+    id: string;
     login: string;
     email: string;
     createdAt: string;

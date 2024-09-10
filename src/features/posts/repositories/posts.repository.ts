@@ -7,7 +7,7 @@ import { postsQueryRepository } from "./posts.query-repository";
 
 export const postRepository = {
     async create(post: CreatePostDto) {
-        const blog = await blogsQueryRepository.find(new ObjectId(post.blogId));
+        const blog = await blogsQueryRepository.find(post.blogId);
         const newPost: Partial<PostDbType> = {
             title: post.title,
             content: post.content,

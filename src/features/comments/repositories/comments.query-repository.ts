@@ -9,7 +9,7 @@ export const commentsQueryRepository = {
             await database.getCollection("COMMENTS")
         ).findOne(
             { _id: new ObjectId(id) },
-            viewProtection,
+            { projection: viewProtection },
         )) as CommentViewType | null;
     },
 
@@ -29,7 +29,7 @@ export const commentsQueryRepository = {
             await database.getCollection("COMMENTS")
         )
             .find(condition, {
-                ...viewProtection,
+                projection: viewProtection,
                 sort: { [sortBy]: sortDirection === "asc" ? 1 : -1 },
                 skip: (+pageNumber - 1) * +pageSize,
                 limit: parseInt(pageSize),

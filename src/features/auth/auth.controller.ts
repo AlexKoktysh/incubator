@@ -1,7 +1,7 @@
 import { Response, Request } from "express";
 import { bcryptService, jwtService } from "../../services";
 import { LoginUserDto } from "./types";
-import { usersQueryRepository } from "../users";
+import { UserDBType, usersQueryRepository } from "../users";
 import { HttpStatuses } from "../../utils";
 
 export const authController = {
@@ -25,7 +25,10 @@ export const authController = {
                 });
                 return;
             }
-            const { accessToken } = jwtService.generateJwtTokens(user);
+            const { accessToken } = jwtService.generateJwtTokens({
+                ...user,
+                _id: user._id.toString(),
+            } as unknown as UserDBType);
             res.status(HttpStatuses.Success).json({ accessToken: accessToken });
         } catch (err: any) {
             res.status(HttpStatuses.Error).json(err);

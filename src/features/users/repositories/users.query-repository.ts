@@ -10,16 +10,19 @@ export const usersQueryRepository = {
     ): Promise<UserViewType | null> {
         const user = (await (
             await database.getCollection("USERS")
-        ).findOne({ [field]: value }, viewProtection)) as UserViewType | null;
+        ).findOne(
+            { [field]: value },
+            { projection: viewProtection },
+        )) as UserViewType | null;
         return user;
     },
 
-    async findById(id: string | ObjectId) {
+    async findById(id: string) {
         const user = (await (
             await database.getCollection("USERS")
         ).findOne(
             { _id: new ObjectId(id) },
-            viewProtection,
+            { projection: viewProtection },
         )) as UserViewType | null;
         return user;
     },
@@ -64,20 +67,13 @@ export const usersQueryRepository = {
         const users = await (
             await database.getCollection("USERS")
         )
-            .aggregate([
-                { $match: filter },
-                {
-                    $project: {
-                        _id: 0,
-                        id: "$_id",
-                        password: 0,
-                    },
-                },
-                { $sort: { [sortBy]: sortDirection === "asc" ? 1 : -1 } },
-                { $skip: (+pageNumber - 1) * +pageSize },
-                { $limit: parseInt(pageSize) },
-            ])
+            .find(filter, {
+                projection: viewProtection,
+                sort: { [sortBy]: sortDirection === "asc" ? 1 : -1 },
+                skip: (+pageNumber - 1) * +pageSize,
+                limit: parseInt(pageSize),
+            })
             .toArray();
-        return { users: users as UserViewType[], totalCount };
+        return { users: users as unknown as UserViewType[], totalCount };
     },
 };
