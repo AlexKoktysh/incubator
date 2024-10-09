@@ -16,4 +16,5 @@ export {
     QueryPaginationType,
     FindEntityFunction,
     HttpStatuses,
+    NodemailerDto,
 } from "./types";

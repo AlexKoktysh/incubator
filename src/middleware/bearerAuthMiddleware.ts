@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { jwtService } from "../services/jwt.service";
 import { HttpStatuses } from "../utils";
-import { usersQueryRepository } from "../features";
+import { usersRepository } from "../features/users/repositories";
 
 export const bearerAuthMiddleware = async (
     req: Request,
@@ -9,7 +9,7 @@ export const bearerAuthMiddleware = async (
     next: NextFunction,
 ) => {
     if (!req.headers.authorization) {
-        res.send(HttpStatuses.Unauthorized);
+        res.sendStatus(HttpStatuses.Unauthorized);
         return;
     }
 
@@ -17,13 +17,14 @@ export const bearerAuthMiddleware = async (
     const userByToken = jwtService.getUserByToken(token);
 
     if (!userByToken) {
-        res.send(HttpStatuses.Unauthorized);
+        res.sendStatus(HttpStatuses.Unauthorized);
         return;
     }
-    const user = await usersQueryRepository.findByCondition(
-        "_id",
-        userByToken.id,
-    );
-    req.userId = user?.id.toString() as unknown as string;
+    const user = await usersRepository.findById(userByToken.id);
+    if (!user?.emailConfirmation.isConfirmed) {
+        res.sendStatus(HttpStatuses.Unauthorized);
+        return;
+    }
+    req.userId = user?._id.toString() as unknown as string;
     next();
 };

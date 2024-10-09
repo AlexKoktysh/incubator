@@ -18,8 +18,17 @@ export const usersQueryRepository = {
     },
 
     async findById(id: string): Promise<UserViewType | null> {
-        const user = await this.findByCondition("_id", id);
+        const user = await usersQueryRepository.findByCondition("_id", id);
         return user;
+    },
+
+    async findExist(email: string, login: string): Promise<UserDBType | null> {
+        const userExists = await (
+            await database.getCollection("USERS")
+        ).findOne({
+            $or: [{ email }, { login }],
+        });
+        return userExists;
     },
 
     async getMany(

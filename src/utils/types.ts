@@ -39,3 +39,9 @@ declare global {
         }
     }
 }
+
+export type NodemailerDto = {
+    email: string;
+    subject: string;
+    message: string;
+};

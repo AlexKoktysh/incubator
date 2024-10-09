@@ -1,1 +1,6 @@
-export { LoginUserSchema } from "./validationSchema";
+export {
+    LoginUserSchema,
+    RegistrationUserSchema,
+    ConfirmationSchema,
+    ResendingSchema,
+} from "./validationSchema";

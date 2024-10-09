@@ -4,4 +4,7 @@ export {
     QueryPaginationByUserType,
     UserViewType,
     ListUsersViewType,
+    UpdateUserDto,
+    ConfirmUserDto,
+    ResendingConfirmDto,
 } from "./dto";

@@ -2,14 +2,11 @@ import { ObjectId } from "mongodb";
 import { BlogDBType, BlogViewType, CreateBlogDto } from "../types";
 import { database } from "../../../db";
 import { blogsQueryRepository } from "./blogs.query-repository";
+import { createBlog } from "../helpers";
 
 export const blogsRepository = {
     async create(blog: CreateBlogDto): Promise<BlogViewType | null> {
-        const newBlog: Partial<BlogDBType> = {
-            ...blog,
-            createdAt: new Date().toISOString(),
-            isMembership: false,
-        };
+        const newBlog = createBlog(blog);
         const response = await (
             await database.getCollection("BLOGS")
         ).insertOne(newBlog as BlogDBType);

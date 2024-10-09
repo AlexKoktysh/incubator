@@ -4,18 +4,13 @@ import { CreatePostDto, PostDbType, PostViewType } from "../types";
 import { BlogViewType } from "../../blogs/types";
 import { database } from "../../../db";
 import { postsQueryRepository } from "./posts.query-repository";
+import { createPost } from "../helpers";
 
 export const postRepository = {
     async create(post: CreatePostDto) {
         const blog = await blogsQueryRepository.find(post.blogId);
-        const newPost: Partial<PostDbType> = {
-            title: post.title,
-            content: post.content,
-            shortDescription: post.shortDescription,
-            createdAt: new Date().toISOString(),
-            blogId: new ObjectId(post.blogId),
-            blogName: (blog as BlogViewType).name,
-        };
+        await database.getCollection("POSTS");
+        const newPost = createPost(post, (blog as BlogViewType).name);
         const response = await (
             await database.getCollection("POSTS")
         ).insertOne(newPost as PostDbType);

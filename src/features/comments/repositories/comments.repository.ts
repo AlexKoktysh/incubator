@@ -3,6 +3,7 @@ import { database } from "../../../db";
 import { CommentDBType, UpdateCommentDto } from "../types";
 import { UserViewType } from "../../users/types";
 import { commentsQueryRepository } from "./comments.query-repository";
+import { createComment } from "../helpers";
 
 export const commentsRepository = {
     async delete(id: string) {
@@ -29,15 +30,7 @@ export const commentsRepository = {
         user: UserViewType,
         postId: string,
     ) {
-        const newComment: Partial<CommentDBType> = {
-            content: comment.content,
-            createdAt: new Date().toISOString(),
-            commentatorInfo: {
-                userId: new ObjectId(user.id) as unknown as string,
-                userLogin: user.login,
-            },
-            postId: new ObjectId(postId),
-        };
+        const newComment = createComment(comment.content, user, postId);
         const response = await (
             await database.getCollection("COMMENTS")
         ).insertOne(newComment as CommentDBType);

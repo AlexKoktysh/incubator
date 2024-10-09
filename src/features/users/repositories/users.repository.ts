@@ -1,14 +1,17 @@
-import { CreateUserDto, UserDBType, UserViewType } from "../types";
+import {
+    CreateUserDto,
+    UpdateUserDto,
+    UserDBType,
+    UserViewType,
+} from "../types";
 import { database } from "../../../db/database";
 import { usersQueryRepository } from "./users.query-repository";
 import { ObjectId } from "mongodb";
+import { createUser } from "../helpers";
 
 export const usersRepository = {
     async create(user: CreateUserDto): Promise<UserViewType | null> {
-        const newUser: Partial<UserDBType> = {
-            ...user,
-            createdAt: new Date().toISOString(),
-        };
+        const newUser = createUser(user);
         const response = await (
             await database.getCollection("USERS")
         ).insertOne(newUser as UserDBType);
@@ -30,5 +33,44 @@ export const usersRepository = {
             $or: [{ login: loginOrEmail }, { email: loginOrEmail }],
         };
         return await (await database.getCollection("USERS")).findOne(filter);
+    },
+    async update({
+        id,
+        expirationDate,
+        isConfirmed = false,
+        confirmationCode = "",
+    }: UpdateUserDto) {
+        const updatedUser = await (
+            await database.getCollection("USERS")
+        ).findOne({ _id: new ObjectId(id) });
+        const newUser: Partial<UserDBType> = {
+            ...updatedUser,
+            emailConfirmation: {
+                confirmationCode:
+                    confirmationCode ??
+                    (updatedUser as UserDBType).emailConfirmation
+                        .confirmationCode,
+                isConfirmed,
+                expirationDate:
+                    expirationDate ??
+                    (updatedUser as UserDBType).emailConfirmation
+                        .expirationDate,
+            },
+        };
+        await (
+            await database.getCollection("USERS")
+        ).updateOne({ _id: new ObjectId(id) }, { $set: newUser });
+    },
+    async find(email: string): Promise<UserDBType | null> {
+        const user = await (
+            await database.getCollection("USERS")
+        ).findOne({ email });
+        return user;
+    },
+    async findById(id: string): Promise<UserDBType | null> {
+        const user = await (
+            await database.getCollection("USERS")
+        ).findOne({ _id: new ObjectId(id) });
+        return user;
     },
 };

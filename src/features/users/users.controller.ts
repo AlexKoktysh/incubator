@@ -11,9 +11,8 @@ import {
     OutputErrorsType,
     setDefaultQueryParams,
 } from "../../utils";
-import { isUniqueUser } from "./helpers";
 import { usersQueryRepository, usersRepository } from "./repositories";
-import { bcryptService } from "../../services";
+import { usersService } from "./users.service";
 
 export const usersController = {
     async getAllUsers(
@@ -59,34 +58,12 @@ export const usersController = {
         req: Request<{}, {}, CreateUserDto>,
         res: Response<UserViewType | OutputErrorsType>,
     ) {
-        try {
-            const isUnique = await isUniqueUser(req.body);
-            if (isUnique) {
-                res.status(HttpStatuses.BadRequest).json({
-                    errorsMessages: [
-                        { field: "email", message: "email should be unique" },
-                    ],
-                });
-                return;
-            }
-            const hashedPassword = await bcryptService.hashPassword(
-                req.body.password,
-            );
-            const user = await usersRepository.create({
-                ...req.body,
-                password: hashedPassword,
+        const user = await usersService.create(req.body, res);
+        if (user && user?.id) {
+            await usersRepository.update({
+                id: user.id,
+                isConfirmed: true,
             });
-            if (user) {
-                res.status(HttpStatuses.Created).json(user);
-            } else {
-                res.status(HttpStatuses.Error).json({
-                    errorsMessages: [
-                        { field: "general", message: "User creation failed" },
-                    ],
-                });
-            }
-        } catch (err: any) {
-            res.status(HttpStatuses.Error).json(err);
         }
     },
 
