@@ -7,7 +7,8 @@
     "license": "MIT",
     "scripts": {
         "watch": "tsc -w",
-        "start": "yarn nodemon src/index.ts",
+        "start": "node src/index.ts",
+        "start:dev": "yarn nodemon src/index.ts",
         "start:local": "docker-compose up -d",
         "dev": "yarn nodemon --inspect dist/index.ts",
         "jest": "jest -i",
