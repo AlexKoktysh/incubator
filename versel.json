@@ -1,7 +1,7 @@
 {
     "version": 2,
     "name": "incubator-hometask-1",
-    "builds": [{ "src": "src/index.ts", "use": "@vercel/node" }],
-    "routes": [{ "src": "/(.*)", "dest": "src/index.ts" }],
+    "builds": [{ "src": "./src/index.ts", "use": "@vercel/node" }],
+    "routes": [{ "src": "/(.*)", "dest": "./src/index.ts" }],
     "rewrites": [{ "source": "/(.*)", "destination": "/" }]
 }
