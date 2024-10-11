@@ -9,22 +9,19 @@ export const bearerAuthMiddleware = async (
     next: NextFunction,
 ) => {
     if (!req.headers.authorization) {
-        res.sendStatus(HttpStatuses.Unauthorized);
-        return;
+        return res.status(HttpStatuses.Unauthorized).send("Unauthorized");
     }
 
     const token = req.headers.authorization.split(" ")[1];
     const userByToken = jwtService.getUserByToken(token);
 
     if (!userByToken) {
-        res.sendStatus(HttpStatuses.Unauthorized);
-        return;
+        return res.status(HttpStatuses.Unauthorized).send("Unauthorized");
     }
     const user = await usersRepository.findById(userByToken.id);
     if (!user?.emailConfirmation.isConfirmed) {
-        res.sendStatus(HttpStatuses.Unauthorized);
-        return;
+        return res.status(HttpStatuses.Unauthorized).send("Unauthorized");
     }
     req.userId = user?._id.toString() as unknown as string;
-    next();
+    return next();
 };

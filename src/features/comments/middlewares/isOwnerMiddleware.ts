@@ -13,8 +13,7 @@ export const isOwnerMiddleware = async (
         findComment?.commentatorInfo.userId.toString() !==
         (req.userId as string)
     ) {
-        res.status(HttpStatuses.Forbidden).json("No permission");
-    } else {
-        next();
+        return res.status(HttpStatuses.Forbidden).json("No permission");
     }
+    return next();
 };
