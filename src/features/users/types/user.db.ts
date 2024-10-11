@@ -11,4 +11,5 @@ export type UserDBType = {
         expirationDate: Date;
         isConfirmed: boolean;
     };
+    refreshToken: string;
 };

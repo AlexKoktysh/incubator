@@ -16,6 +16,8 @@ authRouter.post(
     validateBodyParams(LoginUserSchema),
     authController.loginUser,
 );
+authRouter.post("/refresh-token", authController.refreshToken);
+authRouter.post("/logout", authController.logout);
 authRouter.post(
     "/registration",
     validateBodyParams(RegistrationUserSchema),

@@ -37,8 +37,9 @@ export const usersRepository = {
     async update({
         id,
         expirationDate,
-        isConfirmed = false,
+        isConfirmed = true,
         confirmationCode = "",
+        refreshToken,
     }: UpdateUserDto) {
         const updatedUser = await (
             await database.getCollection("USERS")
@@ -56,6 +57,7 @@ export const usersRepository = {
                     (updatedUser as UserDBType).emailConfirmation
                         .expirationDate,
             },
+            refreshToken: refreshToken ?? updatedUser?.refreshToken,
         };
         await (
             await database.getCollection("USERS")

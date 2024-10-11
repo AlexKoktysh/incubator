@@ -63,9 +63,8 @@ export const usersController = {
             if (user && user?.id) {
                 await usersRepository.update({
                     id: user.id,
-                    isConfirmed: true,
                 });
-                res.status(HttpStatuses.Success).json(user);
+                res.status(HttpStatuses.Created).json(user);
             }
         } catch (err: any) {
             res.status(HttpStatuses.Error).json(err);

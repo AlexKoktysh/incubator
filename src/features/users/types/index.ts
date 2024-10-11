@@ -7,4 +7,5 @@ export {
     UpdateUserDto,
     ConfirmUserDto,
     ResendingConfirmDto,
+    ConfirmUserType,
 } from "./dto";

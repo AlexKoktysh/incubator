@@ -1,12 +1,24 @@
 import { config } from "dotenv";
 config();
 
+const {
+    PORT,
+    MONGO_URL,
+    DB_NAME,
+    GMAIL_USER,
+    GMAIL_PASSWORD,
+    SECRET_ACCESS_TOKEN_KEY,
+    SECRET_REFRESH_TOKEN_KEY,
+    SECRET_CONFIRM_CODE,
+} = process.env;
+
 export const secretsConfig = {
-    PORT: process.env.PORT || 3003,
-    MONGO_URL: process.env.MONGO_URL ?? "",
-    DB_NAME: process.env.DB_NAME ?? "",
-    GMAIL_USER: process.env.GMAIL_USER ?? "",
-    GMAIL_PASSWORD: process.env.GMAIL_PASSWORD ?? "",
-    SECRET_ACCESS_TOKEN_KEY: process.env.SECRET_ACCESS_TOKEN_KEY ?? "",
-    SECRET_CONFIRM_CODE: process.env.SECRET_CONFIRM_CODE ?? "",
+    PORT: PORT || 3003,
+    MONGO_URL: MONGO_URL ?? "",
+    DB_NAME: DB_NAME ?? "",
+    GMAIL_USER: GMAIL_USER ?? "",
+    GMAIL_PASSWORD: GMAIL_PASSWORD ?? "",
+    SECRET_ACCESS_TOKEN_KEY: SECRET_ACCESS_TOKEN_KEY ?? "",
+    SECRET_REFRESH_TOKEN_KEY: SECRET_REFRESH_TOKEN_KEY ?? "",
+    SECRET_CONFIRM_CODE: SECRET_CONFIRM_CODE ?? "",
 };

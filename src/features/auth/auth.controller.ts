@@ -1,15 +1,15 @@
 import { Response, Request } from "express";
-import { add } from "date-fns/add";
-import { bcryptService, jwtService, nodemailerService } from "../../services";
+import { bcryptService, cookieService, jwtService } from "../../services";
 import { LoginUserDto } from "./types";
 import { UserDBType, usersQueryRepository } from "../users";
-import { HttpStatuses } from "../../utils";
+import { HttpStatuses, MailerTypeEnum } from "../../utils";
 import { usersRepository } from "../users/repositories";
 import {
     ConfirmUserDto,
     CreateUserDto,
     ResendingConfirmDto,
 } from "../users/types";
+import { add } from "date-fns/add";
 import { usersService } from "../users/users.service";
 import { constantsConfig } from "../../config";
 
@@ -40,14 +40,71 @@ export const authController = {
                 });
                 return;
             }
-            const { accessToken } = jwtService.generateJwtTokens({
+            const { accessToken, refreshToken } = jwtService.generateJwtTokens({
                 ...user,
-                _id: user._id.toString(),
-            } as unknown as UserDBType);
+            });
+            cookieService.setCookie(refreshToken, res);
+            await usersRepository.update({
+                id: user._id.toString(),
+                refreshToken,
+            });
+            console.log(res);
             res.status(HttpStatuses.Success).json({ accessToken: accessToken });
         } catch (err: any) {
             res.status(HttpStatuses.Error).json(err);
         }
+    },
+    async refreshToken(req: Request, res: Response) {
+        try {
+            const refresh = req.cookies[constantsConfig.refreshTokenCookieName];
+            if (!refresh) {
+                res.status(HttpStatuses.Unauthorized).send("Unauthorized");
+                return;
+            }
+            const userInToken = jwtService.getUserByToken(refresh, "refresh");
+            if (!userInToken) {
+                res.status(HttpStatuses.Unauthorized).send("Unauthorized");
+                return;
+            }
+            const user = await usersRepository.findById(userInToken.id);
+            if (!user || user.refreshToken !== refresh) {
+                res.status(HttpStatuses.Unauthorized).send("Unauthorized");
+                return;
+            }
+            const { accessToken, refreshToken } = jwtService.generateJwtTokens({
+                ...user,
+            });
+            cookieService.setCookie(refreshToken, res);
+            await usersRepository.update({
+                id: user._id.toString(),
+                refreshToken,
+            });
+            res.status(HttpStatuses.Success).json({ accessToken: accessToken });
+        } catch (err: any) {
+            res.status(HttpStatuses.Error).json(err);
+        }
+    },
+    async logout(req: Request, res: Response) {
+        const refresh = req.cookies[constantsConfig.refreshTokenCookieName];
+        if (!refresh) {
+            res.status(HttpStatuses.Unauthorized).send("Unauthorized");
+            return;
+        }
+        const userInToken = jwtService.getUserByToken(refresh, "refresh");
+        if (!userInToken) {
+            res.status(HttpStatuses.Unauthorized).send("Unauthorized");
+            return;
+        }
+        const user = await usersRepository.findById(userInToken.id);
+        if (!user || user.refreshToken !== refresh) {
+            res.status(HttpStatuses.Unauthorized).send("Unauthorized");
+            return;
+        }
+        await usersRepository.update({
+            id: user._id.toString(),
+            refreshToken: "",
+        });
+        res.status(HttpStatuses.NoContent).json("OK");
     },
     async getUserInfo(req: Request, res: Response) {
         try {
@@ -55,7 +112,11 @@ export const authController = {
                 "_id",
                 req.userId as string,
             );
-            res.status(HttpStatuses.Success).json(user);
+            res.status(HttpStatuses.Success).json({
+                email: user?.email,
+                login: user?.login,
+                userId: user?.id,
+            });
         } catch (err) {
             res.status(HttpStatuses.Error).json(err);
         }
@@ -64,26 +125,17 @@ export const authController = {
         const user = await usersService.create(req.body, res);
         if (user) {
             try {
-                const confirmationCode =
-                    await jwtService.generateConfirmationCode(user.email);
-                await usersRepository.update({
-                    id: user.id,
-                    confirmationCode,
-                });
-                const message = `
-                    <h1>Thank for your registration</h1>
-                    <p>To finish registration please follow the link below:
-                        <a href='https://somesite.com/confirm-email?code=${confirmationCode}'>complete registration</a>
-                    </p>
-                `;
-                await nodemailerService.sendEmail({
-                    email: user.email,
-                    message,
-                    subject: "registration",
-                });
+                await usersService.confirm(
+                    {
+                        email: user.email,
+                        id: user.id,
+                        mailerType: MailerTypeEnum.REGISTRATION,
+                    },
+                    res,
+                );
                 res.status(HttpStatuses.NoContent).json("OK");
             } catch (err: any) {
-                console.error("Send email error", err);
+                res.status(HttpStatuses.Error).json(err);
             }
         }
     },
@@ -104,7 +156,6 @@ export const authController = {
             }
             await usersRepository.update({
                 id: (user as UserDBType)._id.toString(),
-                isConfirmed: true,
             });
             res.status(HttpStatuses.NoContent).json("OK");
         } else {
@@ -130,30 +181,17 @@ export const authController = {
                 });
                 return;
             }
-            const confirmationCode = await jwtService.generateConfirmationCode(
-                user.email,
+            await usersService.confirm(
+                {
+                    email: user.email,
+                    id: user._id.toString(),
+                    mailerType: MailerTypeEnum.RESENDING_CONFIRM,
+                },
+                res,
             );
-            await usersRepository.update({
-                id: user._id.toString(),
-                confirmationCode,
-                expirationDate: add(new Date(), {
-                    minutes: constantsConfig.EXPIRES_TIME,
-                }),
-            });
-            const message = `
-                    <h1>Thank for your registration</h1>
-                    <p>To finish registration please follow the link below:
-                        <a href='https://somesite.com/confirm-email?code=${confirmationCode}'>complete registration</a>
-                    </p>
-                `;
-            await nodemailerService.sendEmail({
-                email: user.email,
-                message,
-                subject: "registration",
-            });
             res.status(HttpStatuses.NoContent).json("OK");
         } catch (err: any) {
-            res.status(HttpStatuses.Error).json(err);
+            console.error("Send email error", err);
         }
     },
 };

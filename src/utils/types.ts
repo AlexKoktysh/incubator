@@ -45,3 +45,13 @@ export type NodemailerDto = {
     subject: string;
     message: string;
 };
+
+export enum MailerTypeEnum {
+    REGISTRATION = "REGISTRATION",
+    RESENDING_CONFIRM = "RESENDING_CONFIRM",
+}
+
+export type CreateMailerDto = {
+    type: MailerTypeEnum;
+    code: string;
+};

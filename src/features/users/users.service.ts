@@ -1,9 +1,16 @@
 import { Response } from "express";
-import { bcryptService } from "../../services";
+import { add } from "date-fns/add";
+import {
+    bcryptService,
+    createmailerService,
+    jwtService,
+    nodemailerService,
+} from "../../services";
 import { HttpStatuses, OutputErrorsType } from "../../utils";
 import { isUniqueUser } from "./helpers";
 import { usersRepository } from "./repositories";
-import { CreateUserDto, UserViewType } from "./types";
+import { ConfirmUserType, CreateUserDto, UserViewType } from "./types";
+import { constantsConfig } from "../../config";
 
 export const usersService = {
     async create(
@@ -33,9 +40,7 @@ export const usersService = {
                 ...userDto,
                 password: hashedPassword,
             });
-            if (user) {
-                return user;
-            } else {
+            !user &&
                 res.status(HttpStatuses.Error).json({
                     errorsMessages: [
                         {
@@ -44,11 +49,34 @@ export const usersService = {
                         },
                     ],
                 });
-            }
             return user;
         } catch (err: any) {
             res.status(HttpStatuses.Error).json(err);
             return null;
+        }
+    },
+    async confirm({ email, id, mailerType }: ConfirmUserType, res: Response) {
+        try {
+            const confirmationCode =
+                await jwtService.generateConfirmationCode(email);
+            await usersRepository.update({
+                id,
+                confirmationCode,
+                expirationDate: add(new Date(), {
+                    minutes: constantsConfig.EXPIRES_TIME,
+                }),
+            });
+            const message = createmailerService.createMessage({
+                code: confirmationCode,
+                type: mailerType,
+            });
+            await nodemailerService.sendEmail({
+                email,
+                message,
+                subject: mailerType,
+            });
+        } catch (err: any) {
+            res.status(HttpStatuses.Error).json(err);
         }
     },
 };

@@ -1,4 +1,8 @@
-import { PaginationType, QueryPaginationType } from "../../../utils";
+import {
+    MailerTypeEnum,
+    PaginationType,
+    QueryPaginationType,
+} from "../../../utils";
 
 export type CreateUserDto = {
     login: string;
@@ -26,6 +30,7 @@ export type UpdateUserDto = {
     isConfirmed?: boolean;
     confirmationCode?: string;
     expirationDate?: Date;
+    refreshToken?: string;
 };
 
 export interface ListUsersViewType extends PaginationType {
@@ -36,3 +41,9 @@ export interface QueryPaginationByUserType extends QueryPaginationType {
     searchLoginTerm?: string;
     searchEmailTerm?: string;
 }
+
+export type ConfirmUserType = {
+    id: string;
+    email: string;
+    mailerType: MailerTypeEnum;
+};

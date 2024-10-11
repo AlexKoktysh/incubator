@@ -3,25 +3,42 @@ import { UserDBType } from "../features";
 import { constantsConfig, secretsConfig } from "../config";
 
 export const jwtService = {
+    createToken(user: UserDBType, secret: string, expiresIn: string) {
+        const token = jwt.sign(
+            { login: user.login, email: user.email, id: user._id.toString() },
+            secret,
+            {
+                expiresIn,
+            },
+        );
+        return token;
+    },
     generateJwtTokens(user: UserDBType) {
         try {
-            const accessToken = jwt.sign(
-                { login: user.login, email: user.email, id: user._id },
+            const accessToken = jwtService.createToken(
+                user,
                 secretsConfig.SECRET_ACCESS_TOKEN_KEY,
-                {
-                    expiresIn: "24h",
-                },
+                `${constantsConfig.expiresAccessToken}s`,
             );
-            return { accessToken };
+            const refreshToken = jwtService.createToken(
+                user,
+                secretsConfig.SECRET_REFRESH_TOKEN_KEY,
+                `${constantsConfig.expiresRefreshToken}s`,
+            );
+            return { accessToken, refreshToken };
         } catch (err) {
             throw err;
         }
     },
-    getUserByToken(token: string) {
+    getUserByToken(token: string, type: "access" | "refresh") {
         try {
             const user: { id: string } = jwt.verify(
                 token,
-                secretsConfig.SECRET_ACCESS_TOKEN_KEY,
+                secretsConfig[
+                    type === "access"
+                        ? "SECRET_ACCESS_TOKEN_KEY"
+                        : "SECRET_REFRESH_TOKEN_KEY"
+                ],
             ) as { id: string };
             return user;
         } catch (err) {

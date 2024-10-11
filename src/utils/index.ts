@@ -17,4 +17,6 @@ export {
     FindEntityFunction,
     HttpStatuses,
     NodemailerDto,
+    CreateMailerDto,
+    MailerTypeEnum,
 } from "./types";
