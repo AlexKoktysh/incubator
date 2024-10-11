@@ -58,12 +58,17 @@ export const usersController = {
         req: Request<{}, {}, CreateUserDto>,
         res: Response<UserViewType | OutputErrorsType>,
     ) {
-        const user = await usersService.create(req.body, res);
-        if (user && user?.id) {
-            await usersRepository.update({
-                id: user.id,
-                isConfirmed: true,
-            });
+        try {
+            const user = await usersService.create(req.body, res);
+            if (user && user?.id) {
+                await usersRepository.update({
+                    id: user.id,
+                    isConfirmed: true,
+                });
+                res.status(HttpStatuses.Success).json(user);
+            }
+        } catch (err: any) {
+            res.status(HttpStatuses.Error).json(err);
         }
     },
 
