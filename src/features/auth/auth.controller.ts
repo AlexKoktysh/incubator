@@ -9,7 +9,6 @@ import {
     CreateUserDto,
     ResendingConfirmDto,
 } from "../users/types";
-import { add } from "date-fns/add";
 import { usersService } from "../users/users.service";
 import { constantsConfig } from "../../config";
 
@@ -48,7 +47,6 @@ export const authController = {
                 id: user._id.toString(),
                 refreshToken,
             });
-            console.log(res);
             res.status(HttpStatuses.Success).json({ accessToken: accessToken });
         } catch (err: any) {
             res.status(HttpStatuses.Error).json(err);
@@ -56,18 +54,18 @@ export const authController = {
     },
     async refreshToken(req: Request, res: Response) {
         try {
-            const refresh = req.cookies[constantsConfig.refreshTokenCookieName];
-            if (!refresh) {
+            const token = req.cookies[constantsConfig.refreshTokenCookieName];
+            if (!token) {
                 res.status(HttpStatuses.Unauthorized).send("Unauthorized");
                 return;
             }
-            const userInToken = jwtService.getUserByToken(refresh, "refresh");
+            const userInToken = jwtService.getUserByToken(token, "refresh");
             if (!userInToken) {
                 res.status(HttpStatuses.Unauthorized).send("Unauthorized");
                 return;
             }
             const user = await usersRepository.findById(userInToken.id);
-            if (!user || user.refreshToken !== refresh) {
+            if (!user || user.refreshToken !== token) {
                 res.status(HttpStatuses.Unauthorized).send("Unauthorized");
                 return;
             }
@@ -85,18 +83,18 @@ export const authController = {
         }
     },
     async logout(req: Request, res: Response) {
-        const refresh = req.cookies[constantsConfig.refreshTokenCookieName];
-        if (!refresh) {
+        const token = req.cookies[constantsConfig.refreshTokenCookieName];
+        if (!token) {
             res.status(HttpStatuses.Unauthorized).send("Unauthorized");
             return;
         }
-        const userInToken = jwtService.getUserByToken(refresh, "refresh");
+        const userInToken = jwtService.getUserByToken(token, "refresh");
         if (!userInToken) {
             res.status(HttpStatuses.Unauthorized).send("Unauthorized");
             return;
         }
         const user = await usersRepository.findById(userInToken.id);
-        if (!user || user.refreshToken !== refresh) {
+        if (!user || user.refreshToken !== token) {
             res.status(HttpStatuses.Unauthorized).send("Unauthorized");
             return;
         }

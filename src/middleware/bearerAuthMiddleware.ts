@@ -17,13 +17,6 @@ export const bearerAuthMiddleware = async (
     const userByToken = jwtService.getUserByToken(token, "access");
 
     if (!userByToken || !token) {
-        const refresh = req.cookies[constantsConfig.refreshTokenCookieName];
-        const userInToken = jwtService.getUserByToken(refresh, "refresh");
-        if (!userInToken)
-            return res.status(HttpStatuses.Unauthorized).send("Unauthorized");
-        const user = await usersRepository.findById(userInToken.id);
-        if (refresh !== user?.refreshToken)
-            return res.status(HttpStatuses.Unauthorized).send("Unauthorized");
         return res.status(HttpStatuses.Unauthorized).send("Unauthorized");
     }
     const user = await usersRepository.findById(userByToken.id);
