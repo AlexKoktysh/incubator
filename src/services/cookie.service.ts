@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Response, Request } from "express";
 import { add } from "date-fns/add";
 import { constantsConfig } from "../config";
 
@@ -12,5 +12,9 @@ export const cookieService = {
             secure: true,
             sameSite: "strict",
         });
+    },
+    getCookie(cookieName: string, req: Request) {
+        const cookie = req.cookies[cookieName];
+        return cookie;
     },
 };

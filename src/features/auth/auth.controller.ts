@@ -54,7 +54,10 @@ export const authController = {
     },
     async refreshToken(req: Request, res: Response) {
         try {
-            const token = req.cookies[constantsConfig.refreshTokenCookieName];
+            const token = cookieService.getCookie(
+                constantsConfig.refreshTokenCookieName,
+                req,
+            );
             if (!token) {
                 res.status(HttpStatuses.Unauthorized).send("Unauthorized");
                 return;
@@ -83,7 +86,10 @@ export const authController = {
         }
     },
     async logout(req: Request, res: Response) {
-        const token = req.cookies[constantsConfig.refreshTokenCookieName];
+        const token = cookieService.getCookie(
+            constantsConfig.refreshTokenCookieName,
+            req,
+        );
         if (!token) {
             res.status(HttpStatuses.Unauthorized).send("Unauthorized");
             return;
