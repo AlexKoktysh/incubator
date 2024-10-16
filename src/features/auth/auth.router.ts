@@ -8,16 +8,25 @@ import {
     RegistrationUserSchema,
     ResendingSchema,
 } from "./utils";
+import {
+    checkCredentialsMiddleware,
+    checkRefreshTokenMiddleware,
+} from "./middlewares";
 
 export const authRouter = Router();
 
 authRouter.post(
     "/login",
     validateBodyParams(LoginUserSchema),
+    checkCredentialsMiddleware,
     authController.loginUser,
 );
-authRouter.post("/refresh-token", authController.refreshToken);
-authRouter.post("/logout", authController.logout);
+authRouter.post(
+    "/refresh-token",
+    checkRefreshTokenMiddleware,
+    authController.refreshToken,
+);
+authRouter.post("/logout", checkRefreshTokenMiddleware, authController.logout);
 authRouter.post(
     "/registration",
     validateBodyParams(RegistrationUserSchema),

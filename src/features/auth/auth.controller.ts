@@ -10,35 +10,13 @@ import {
     ResendingConfirmDto,
 } from "../users/types";
 import { usersService } from "../users/users.service";
-import { constantsConfig } from "../../config";
 
 export const authController = {
     async loginUser(req: Request<{}, {}, LoginUserDto>, res: Response) {
         try {
-            const { loginOrEmail, password } = req.body;
-            const user = await usersRepository.findForLogin(loginOrEmail);
-            if (!user?._id) {
-                res.status(HttpStatuses.Unauthorized).send({
-                    error: "Wrong email or password.",
-                });
-                return;
-            }
-            if (!user.emailConfirmation.isConfirmed) {
-                res.status(HttpStatuses.Unauthorized).send({
-                    error: "This user not confirmed",
-                });
-                return;
-            }
-            const isPasswordValid = await bcryptService.comparePassword(
-                password,
-                user.password,
-            );
-            if (!isPasswordValid) {
-                res.status(HttpStatuses.Unauthorized).send({
-                    error: "Wrong email or password.",
-                });
-                return;
-            }
+            const user = await usersRepository.findById(req.userId as string);
+            if (!user) return;
+
             const { accessToken, refreshToken } = jwtService.generateJwtTokens({
                 ...user,
             });
@@ -54,24 +32,9 @@ export const authController = {
     },
     async refreshToken(req: Request, res: Response) {
         try {
-            const token = cookieService.getCookie(
-                constantsConfig.refreshTokenCookieName,
-                req,
-            );
-            if (!token) {
-                res.status(HttpStatuses.Unauthorized).send("Unauthorized");
-                return;
-            }
-            const userInToken = jwtService.getUserByToken(token, "refresh");
-            if (!userInToken) {
-                res.status(HttpStatuses.Unauthorized).send("Unauthorized");
-                return;
-            }
-            const user = await usersRepository.findById(userInToken.id);
-            if (!user || user.refreshToken !== token) {
-                res.status(HttpStatuses.Unauthorized).send("Unauthorized");
-                return;
-            }
+            const user = await usersRepository.findById(req.userId as string);
+            if (!user) return;
+
             const { accessToken, refreshToken } = jwtService.generateJwtTokens({
                 ...user,
             });
@@ -86,26 +49,8 @@ export const authController = {
         }
     },
     async logout(req: Request, res: Response) {
-        const token = cookieService.getCookie(
-            constantsConfig.refreshTokenCookieName,
-            req,
-        );
-        if (!token) {
-            res.status(HttpStatuses.Unauthorized).send("Unauthorized");
-            return;
-        }
-        const userInToken = jwtService.getUserByToken(token, "refresh");
-        if (!userInToken) {
-            res.status(HttpStatuses.Unauthorized).send("Unauthorized");
-            return;
-        }
-        const user = await usersRepository.findById(userInToken.id);
-        if (!user || user.refreshToken !== token) {
-            res.status(HttpStatuses.Unauthorized).send("Unauthorized");
-            return;
-        }
         await usersRepository.update({
-            id: user._id.toString(),
+            id: req.userId as string,
             refreshToken: "",
         });
         res.status(HttpStatuses.NoContent).json("OK");
