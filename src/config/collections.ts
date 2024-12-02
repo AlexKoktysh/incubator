@@ -1,10 +1,17 @@
-import { BlogDBType, CommentDBType, PostDbType, UserDBType } from "../features";
+import {
+    BlogDBType,
+    CommentDBType,
+    PostDbType,
+    UserDBType,
+    DevicesDbType,
+} from "../features";
 
 export const collectionsConfig = {
     BLOGS: "blogs",
     POSTS: "posts",
     USERS: "users",
     COMMENTS: "comments",
+    DEVICES: "devices",
 } as const;
 
 export type CollectionTypes = {
@@ -12,4 +19,5 @@ export type CollectionTypes = {
     POSTS: PostDbType;
     USERS: UserDBType;
     COMMENTS: CommentDBType;
+    DEVICES: DevicesDbType;
 };

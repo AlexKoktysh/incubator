@@ -30,7 +30,6 @@ export type UpdateUserDto = {
     isConfirmed?: boolean;
     confirmationCode?: string;
     expirationDate?: Date;
-    refreshToken?: string;
 };
 
 export interface ListUsersViewType extends PaginationType {

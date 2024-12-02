@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { bearerAuthMiddleware } from "../../middleware";
+import { bearerAuthMiddleware, limiterMiddleware } from "../../middleware";
 import { authController } from "./auth.controller";
 import { validateBodyParams } from "../../utils";
 import {
@@ -35,6 +35,7 @@ authRouter.post(
 authRouter.post(
     "/registration-confirmation",
     validateBodyParams(ConfirmationSchema),
+    limiterMiddleware,
     authController.confirmUser,
 );
 authRouter.post(

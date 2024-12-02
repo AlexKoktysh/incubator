@@ -7,3 +7,4 @@ export {
     commentsQueryRepository,
     CommentDBType,
 } from "./comments";
+export { devicesRouter, DevicesDbType } from "./devices";

@@ -4,4 +4,5 @@ export const pathConfig = {
     USERS: "/users",
     AUTH: "/auth",
     COMMENTS: "/comments",
+    DEVICES: "/security/devices",
 };

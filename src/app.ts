@@ -6,6 +6,7 @@ import {
     authRouter,
     blogsRouter,
     commentsRouter,
+    devicesRouter,
     postsRouter,
     usersRouter,
 } from "./features";
@@ -17,11 +18,14 @@ app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
 
+app.set("trust proxy", true);
+
 app.use(`${pathConfig.BLOGS}`, blogsRouter);
 app.use(`${pathConfig.POST}`, postsRouter);
 app.use(`${pathConfig.USERS}`, usersRouter);
 app.use(`${pathConfig.AUTH}`, authRouter);
 app.use(`${pathConfig.COMMENTS}`, commentsRouter);
+app.use(`${pathConfig.DEVICES}`, devicesRouter);
 
 app.use("/testing", TestingsRouter);
 app.get("/", (_req, res) => {

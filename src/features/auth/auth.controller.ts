@@ -1,5 +1,5 @@
 import { Response, Request } from "express";
-import { bcryptService, cookieService, jwtService } from "../../services";
+import { cookieService, jwtService } from "../../services";
 import { LoginUserDto } from "./types";
 import { UserDBType, usersQueryRepository } from "../users";
 import { HttpStatuses, MailerTypeEnum } from "../../utils";
@@ -10,6 +10,8 @@ import {
     ResendingConfirmDto,
 } from "../users/types";
 import { usersService } from "../users/users.service";
+import { devicesController, devicesRepository } from "../devices";
+import { constantsConfig } from "../../config";
 
 export const authController = {
     async loginUser(req: Request<{}, {}, LoginUserDto>, res: Response) {
@@ -20,11 +22,15 @@ export const authController = {
             const { accessToken, refreshToken } = jwtService.generateJwtTokens({
                 ...user,
             });
-            cookieService.setCookie(refreshToken, res);
-            await usersRepository.update({
-                id: user._id.toString(),
-                refreshToken,
+            await devicesController.create({
+                userId: req.userId as string,
+                token: refreshToken,
+                deviceName: req.headers["user-agent"] ?? "Unknown device",
+                IP: req.ip ?? "Unknown IP",
             });
+
+            cookieService.setCookie(refreshToken, res);
+
             res.status(HttpStatuses.Success).json({ accessToken: accessToken });
         } catch (err: any) {
             res.status(HttpStatuses.Error).json(err);
@@ -33,15 +39,26 @@ export const authController = {
     async refreshToken(req: Request, res: Response) {
         try {
             const user = await usersRepository.findById(req.userId as string);
-            if (!user) return;
+            if (!user) {
+                res.status(HttpStatuses.Unauthorized).json("No permissons");
+                return;
+            }
 
             const { accessToken, refreshToken } = jwtService.generateJwtTokens({
                 ...user,
             });
             cookieService.setCookie(refreshToken, res);
-            await usersRepository.update({
-                id: user._id.toString(),
-                refreshToken,
+
+            const meta = jwtService.getUserByToken(refreshToken, "refresh");
+
+            if (!meta) {
+                res.status(HttpStatuses.Forbidden).json("No permissons");
+                return;
+            }
+
+            await devicesRepository.update({
+                deviceId: meta.deviceId,
+                iat: meta.iat,
             });
             res.status(HttpStatuses.Success).json({ accessToken: accessToken });
         } catch (err: any) {
@@ -49,11 +66,18 @@ export const authController = {
         }
     },
     async logout(req: Request, res: Response) {
-        await usersRepository.update({
-            id: req.userId as string,
-            refreshToken: "",
-        });
-        res.status(HttpStatuses.NoContent).json("OK");
+        try {
+            const token = cookieService.getCookie(
+                constantsConfig.refreshTokenCookieName,
+                req,
+            );
+            const deviceId =
+                jwtService.getUserByToken(token, "refresh")?.deviceId ?? "";
+            await devicesRepository.deleteById(deviceId);
+            res.status(HttpStatuses.NoContent).json("OK");
+        } catch (err: any) {
+            res.status(HttpStatuses.Error).json(err);
+        }
     },
     async getUserInfo(req: Request, res: Response) {
         try {

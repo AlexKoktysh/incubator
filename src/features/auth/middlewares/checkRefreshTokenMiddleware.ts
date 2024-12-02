@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { cookieService, jwtService } from "../../../services";
 import { constantsConfig } from "../../../config";
 import { HttpStatuses } from "../../../utils";
-import { usersRepository } from "../../users/repositories";
+import { devicesQueryRepository } from "../../devices";
 
 export const checkRefreshTokenMiddleware = async (
     req: Request,
@@ -18,19 +18,24 @@ export const checkRefreshTokenMiddleware = async (
         return;
     }
 
-    const userInToken = jwtService.getUserByToken(token, "refresh");
-    if (!userInToken) {
+    const userMeta = jwtService.getUserByToken(token, "refresh");
+    if (!userMeta) {
         res.status(HttpStatuses.Unauthorized).send("Unauthorized");
         return;
     }
 
-    const user = await usersRepository.findById(userInToken.id);
-    if (!user || user.refreshToken !== token) {
+    const device = await devicesQueryRepository.find(userMeta.deviceId);
+    if (!device) {
         res.status(HttpStatuses.Unauthorized).send("Unauthorized");
         return;
     }
 
-    req.userId = user?._id.toString() as unknown as string;
+    if (device.issuedAt !== new Date(userMeta.iat * 1000).toISOString()) {
+        res.status(HttpStatuses.Unauthorized).send("Unauthorized");
+        return;
+    }
+
+    req.userId = userMeta.id;
 
     return next();
 };

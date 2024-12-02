@@ -1,16 +1,27 @@
 import jwt from "jsonwebtoken";
+import { v4 as uuidv4 } from "uuid";
 import { UserDBType } from "../features";
 import { constantsConfig, secretsConfig } from "../config";
 
 export const jwtService = {
-    createToken(user: UserDBType, secret: string, expiresIn: string) {
-        const token = jwt.sign(
-            { login: user.login, email: user.email, id: user._id.toString() },
-            secret,
-            {
-                expiresIn,
-            },
-        );
+    createToken(
+        user: UserDBType,
+        secret: string,
+        expiresIn: string,
+        type: "access" | "refresh",
+    ) {
+        let meta = {
+            login: user.login,
+            email: user.email,
+            id: user._id.toString(),
+            deviceId: "",
+        };
+        if (type === "refresh") {
+            meta = { ...meta, deviceId: uuidv4() };
+        }
+        const token = jwt.sign(meta, secret, {
+            expiresIn,
+        });
         return token;
     },
     generateJwtTokens(user: UserDBType) {
@@ -19,11 +30,13 @@ export const jwtService = {
                 user,
                 secretsConfig.SECRET_ACCESS_TOKEN_KEY,
                 `${constantsConfig.expiresAccessToken}s`,
+                "access",
             );
             const refreshToken = jwtService.createToken(
                 user,
                 secretsConfig.SECRET_REFRESH_TOKEN_KEY,
                 `${constantsConfig.expiresRefreshToken}s`,
+                "refresh",
             );
             return { accessToken, refreshToken };
         } catch (err) {
@@ -32,14 +45,15 @@ export const jwtService = {
     },
     getUserByToken(token: string, type: "access" | "refresh") {
         try {
-            const user: { id: string } = jwt.verify(
-                token,
-                secretsConfig[
-                    type === "access"
-                        ? "SECRET_ACCESS_TOKEN_KEY"
-                        : "SECRET_REFRESH_TOKEN_KEY"
-                ],
-            ) as { id: string };
+            const user: { id: string; deviceId: string; iat: number } =
+                jwt.verify(
+                    token,
+                    secretsConfig[
+                        type === "access"
+                            ? "SECRET_ACCESS_TOKEN_KEY"
+                            : "SECRET_REFRESH_TOKEN_KEY"
+                    ],
+                ) as { id: string; deviceId: string; iat: number };
             return user;
         } catch (err) {
             return null;

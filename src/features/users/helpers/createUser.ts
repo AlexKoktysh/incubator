@@ -12,7 +12,6 @@ export const createUser = (user: CreateUserDto): Partial<UserDBType> => {
             }),
             isConfirmed: false,
         },
-        refreshToken: "",
         createdAt: new Date().toISOString(),
     };
     return newUser;
