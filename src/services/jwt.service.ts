@@ -8,15 +8,15 @@ export const jwtService = {
         user: UserDBType,
         secret: string,
         expiresIn: string,
-        type: "access" | "refresh",
+        deviceId?: string,
     ) {
         let meta = {
             login: user.login,
             email: user.email,
             id: user._id.toString(),
-            deviceId: "",
+            deviceId,
         };
-        if (type === "refresh") {
+        if (!deviceId) {
             meta = { ...meta, deviceId: uuidv4() };
         }
         const token = jwt.sign(meta, secret, {
@@ -24,19 +24,19 @@ export const jwtService = {
         });
         return token;
     },
-    generateJwtTokens(user: UserDBType) {
+    generateJwtTokens(user: UserDBType, deviceId?: string) {
         try {
             const accessToken = jwtService.createToken(
                 user,
                 secretsConfig.SECRET_ACCESS_TOKEN_KEY,
                 `${constantsConfig.expiresAccessToken}s`,
-                "access",
+                deviceId,
             );
             const refreshToken = jwtService.createToken(
                 user,
                 secretsConfig.SECRET_REFRESH_TOKEN_KEY,
                 `${constantsConfig.expiresRefreshToken}s`,
-                "refresh",
+                deviceId,
             );
             return { accessToken, refreshToken };
         } catch (err) {

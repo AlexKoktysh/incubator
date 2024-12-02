@@ -1,8 +1,9 @@
 import { Response, Request } from "express";
-import { jwtService } from "../../services";
+import { cookieService, jwtService } from "../../services";
 import { HttpStatuses, OutputErrorsType } from "../../utils";
 import { devicesQueryRepository, devicesRepository } from "./repositories";
 import { DevicesViewType } from "./types";
+import { constantsConfig } from "../../config";
 
 export const devicesController = {
     async create({
@@ -29,6 +30,12 @@ export const devicesController = {
         };
         return await devicesRepository.create(newDevice);
     },
+    async update({ deviceId, iat }: { deviceId: string; iat: number }) {
+        return await devicesRepository.update({
+            deviceId,
+            iat,
+        });
+    },
     async getAll(
         req: Request,
         res: Response<DevicesViewType[] | OutputErrorsType>,
@@ -44,7 +51,16 @@ export const devicesController = {
     },
     async deleteAll(req: Request, res: Response) {
         try {
-            await devicesRepository.deleteAll(req.userId as string);
+            const token = cookieService.getCookie(
+                constantsConfig.refreshTokenCookieName,
+                req,
+            );
+            const userMeta = jwtService.getUserByToken(token, "refresh");
+
+            await devicesRepository.deleteAll(
+                req.userId as string,
+                userMeta?.deviceId as string,
+            );
             res.status(HttpStatuses.NoContent).json("Ok");
         } catch (err: any) {
             res.status(HttpStatuses.Error).json(err);
@@ -54,10 +70,10 @@ export const devicesController = {
         try {
             const device = await devicesQueryRepository.find(req.params.id);
 
-            // if (device?.userId !== req.userId) {
-            //     res.status(HttpStatuses.Forbidden).json("No permission");
-            //     return;
-            // }
+            if (device?.userId !== req.userId) {
+                res.status(HttpStatuses.Forbidden).json("No permission");
+                return;
+            }
 
             await devicesRepository.deleteById(req.params.id);
             res.status(HttpStatuses.NoContent).json("Ok");

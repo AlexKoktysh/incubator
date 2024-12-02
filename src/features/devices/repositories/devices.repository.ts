@@ -10,6 +10,8 @@ export const devicesRepository = {
         return response.insertedId.toString() ?? null;
     },
     async update({ deviceId, iat }: { deviceId: string; iat: number }) {
+        // to do find one and update
+        // unit format date
         const device = await (
             await database.getCollection("DEVICES")
         ).findOne({ deviceId });
@@ -22,11 +24,16 @@ export const devicesRepository = {
             await database.getCollection("DEVICES")
         ).updateOne({ deviceId }, { $set: newDevice });
     },
-    async deleteAll(userId: string) {
+    async deleteAll(userId: string, deviceId: string) {
+        const keepDevice = await (
+            await database.getCollection("DEVICES")
+        ).findOne({ deviceId: deviceId });
+
         await (
             await database.getCollection("DEVICES")
         ).deleteMany({
             userId,
+            _id: { $ne: keepDevice?._id },
         });
     },
     async deleteById(id: string) {

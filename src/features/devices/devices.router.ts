@@ -1,19 +1,23 @@
 import { Router } from "express";
 import { devicesController } from "./devices.controller";
-import { bearerAuthMiddleware } from "../../middleware";
 import {
     queryValidationIdMiddleware,
     queryValidationMiddleware,
 } from "../../utils";
 import { devicesQueryRepository } from "./repositories";
+import { checkRefreshTokenMiddleware } from "../auth/middlewares";
 
 export const devicesRouter = Router();
 
-devicesRouter.get("/", bearerAuthMiddleware, devicesController.getAll);
-devicesRouter.delete("/", bearerAuthMiddleware, devicesController.deleteAll);
+devicesRouter.get("/", checkRefreshTokenMiddleware, devicesController.getAll);
+devicesRouter.delete(
+    "/",
+    checkRefreshTokenMiddleware,
+    devicesController.deleteAll,
+);
 devicesRouter.delete(
     "/:id",
-    bearerAuthMiddleware,
+    checkRefreshTokenMiddleware,
     queryValidationIdMiddleware,
     queryValidationMiddleware(devicesQueryRepository.find),
     devicesController.deleteById,

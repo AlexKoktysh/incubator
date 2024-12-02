@@ -44,22 +44,24 @@ export const authController = {
                 return;
             }
 
-            const { accessToken, refreshToken } = jwtService.generateJwtTokens({
-                ...user,
+            const oldToken = cookieService.getCookie(
+                constantsConfig.refreshTokenCookieName,
+                req,
+            );
+            const userMeta = jwtService.getUserByToken(oldToken, "refresh");
+
+            const { accessToken, refreshToken } = jwtService.generateJwtTokens(
+                {
+                    ...user,
+                },
+                userMeta?.deviceId,
+            );
+            const meta = jwtService.getUserByToken(refreshToken, "refresh");
+            await devicesController.update({
+                deviceId: meta?.deviceId as string,
+                iat: meta?.iat as number,
             });
             cookieService.setCookie(refreshToken, res);
-
-            const meta = jwtService.getUserByToken(refreshToken, "refresh");
-
-            if (!meta) {
-                res.status(HttpStatuses.Forbidden).json("No permissons");
-                return;
-            }
-
-            await devicesRepository.update({
-                deviceId: meta.deviceId,
-                iat: meta.iat,
-            });
             res.status(HttpStatuses.Success).json({ accessToken: accessToken });
         } catch (err: any) {
             res.status(HttpStatuses.Error).json(err);
@@ -73,7 +75,9 @@ export const authController = {
             );
             const deviceId =
                 jwtService.getUserByToken(token, "refresh")?.deviceId ?? "";
+
             await devicesRepository.deleteById(deviceId);
+
             res.status(HttpStatuses.NoContent).json("OK");
         } catch (err: any) {
             res.status(HttpStatuses.Error).json(err);

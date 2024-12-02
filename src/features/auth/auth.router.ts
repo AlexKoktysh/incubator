@@ -17,6 +17,7 @@ export const authRouter = Router();
 
 authRouter.post(
     "/login",
+    limiterMiddleware,
     validateBodyParams(LoginUserSchema),
     checkCredentialsMiddleware,
     authController.loginUser,
@@ -29,17 +30,19 @@ authRouter.post(
 authRouter.post("/logout", checkRefreshTokenMiddleware, authController.logout);
 authRouter.post(
     "/registration",
+    limiterMiddleware,
     validateBodyParams(RegistrationUserSchema),
     authController.registerUser,
 );
 authRouter.post(
     "/registration-confirmation",
-    validateBodyParams(ConfirmationSchema),
     limiterMiddleware,
+    validateBodyParams(ConfirmationSchema),
     authController.confirmUser,
 );
 authRouter.post(
     "/registration-email-resending",
+    limiterMiddleware,
     validateBodyParams(ResendingSchema),
     authController.resendingConfirm,
 );
